@@ -1,0 +1,116 @@
+On branch lab0
+Your branch is ahead of 'origin/lab0' by 1 commit.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   ../csc/code/Makefile
+	modified:   ../csc/code/fibo.c
+	modified:   ../csc/code/modify.sh
+	modified:   README.txt
+	modified:   ../ray/sh_test1/changefile.sh
+	deleted:    ../ray/sh_test1/file100/.readme
+	deleted:    ../ray/sh_test1/file41/.readme
+	deleted:    ../ray/sh_test1/file42/.readme
+	deleted:    ../ray/sh_test1/file43/.readme
+	deleted:    ../ray/sh_test1/file44/.readme
+	deleted:    ../ray/sh_test1/file45/.readme
+	deleted:    ../ray/sh_test1/file46/.readme
+	deleted:    ../ray/sh_test1/file47/.readme
+	deleted:    ../ray/sh_test1/file48/.readme
+	deleted:    ../ray/sh_test1/file49/.readme
+	deleted:    ../ray/sh_test1/file50/.readme
+	deleted:    ../ray/sh_test1/file51/.readme
+	deleted:    ../ray/sh_test1/file52/.readme
+	deleted:    ../ray/sh_test1/file53/.readme
+	deleted:    ../ray/sh_test1/file54/.readme
+	deleted:    ../ray/sh_test1/file55/.readme
+	deleted:    ../ray/sh_test1/file56/.readme
+	deleted:    ../ray/sh_test1/file57/.readme
+	deleted:    ../ray/sh_test1/file58/.readme
+	deleted:    ../ray/sh_test1/file59/.readme
+	deleted:    ../ray/sh_test1/file60/.readme
+	deleted:    ../ray/sh_test1/file61/.readme
+	deleted:    ../ray/sh_test1/file62/.readme
+	deleted:    ../ray/sh_test1/file63/.readme
+	deleted:    ../ray/sh_test1/file64/.readme
+	deleted:    ../ray/sh_test1/file65/.readme
+	deleted:    ../ray/sh_test1/file66/.readme
+	deleted:    ../ray/sh_test1/file67/.readme
+	deleted:    ../ray/sh_test1/file68/.readme
+	deleted:    ../ray/sh_test1/file69/.readme
+	deleted:    ../ray/sh_test1/file70/.readme
+	deleted:    ../ray/sh_test1/file71/.readme
+	deleted:    ../ray/sh_test1/file72/.readme
+	deleted:    ../ray/sh_test1/file73/.readme
+	deleted:    ../ray/sh_test1/file74/.readme
+	deleted:    ../ray/sh_test1/file75/.readme
+	deleted:    ../ray/sh_test1/file76/.readme
+	deleted:    ../ray/sh_test1/file77/.readme
+	deleted:    ../ray/sh_test1/file78/.readme
+	deleted:    ../ray/sh_test1/file79/.readme
+	deleted:    ../ray/sh_test1/file80/.readme
+	deleted:    ../ray/sh_test1/file81/.readme
+	deleted:    ../ray/sh_test1/file82/.readme
+	deleted:    ../ray/sh_test1/file83/.readme
+	deleted:    ../ray/sh_test1/file84/.readme
+	deleted:    ../ray/sh_test1/file85/.readme
+	deleted:    ../ray/sh_test1/file86/.readme
+	deleted:    ../ray/sh_test1/file87/.readme
+	deleted:    ../ray/sh_test1/file88/.readme
+	deleted:    ../ray/sh_test1/file89/.readme
+	deleted:    ../ray/sh_test1/file90/.readme
+	deleted:    ../ray/sh_test1/file91/.readme
+	deleted:    ../ray/sh_test1/file92/.readme
+	deleted:    ../ray/sh_test1/file93/.readme
+	deleted:    ../ray/sh_test1/file94/.readme
+	deleted:    ../ray/sh_test1/file95/.readme
+	deleted:    ../ray/sh_test1/file96/.readme
+	deleted:    ../ray/sh_test1/file97/.readme
+	deleted:    ../ray/sh_test1/file98/.readme
+	deleted:    ../ray/sh_test1/file99/.readme
+	modified:   ../ray/sh_test2/search.sh
+	modified:   ../src/Makefile
+	modified:   ../src/sh_test/hello_os.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	Modified.txt
+	Stage.txt
+	Untracked.txt
+	../ray/sh_test1/newfile41/
+	../ray/sh_test1/newfile42/
+	../ray/sh_test1/newfile43/
+	../ray/sh_test1/newfile44/
+	../ray/sh_test1/newfile45/
+	../ray/sh_test1/newfile46/
+	../ray/sh_test1/newfile47/
+	../ray/sh_test1/newfile48/
+	../ray/sh_test1/newfile49/
+	../ray/sh_test1/newfile50/
+	../ray/sh_test1/newfile51/
+	../ray/sh_test1/newfile52/
+	../ray/sh_test1/newfile53/
+	../ray/sh_test1/newfile54/
+	../ray/sh_test1/newfile55/
+	../ray/sh_test1/newfile56/
+	../ray/sh_test1/newfile57/
+	../ray/sh_test1/newfile58/
+	../ray/sh_test1/newfile59/
+	../ray/sh_test1/newfile60/
+	../ray/sh_test1/newfile61/
+	../ray/sh_test1/newfile62/
+	../ray/sh_test1/newfile63/
+	../ray/sh_test1/newfile64/
+	../ray/sh_test1/newfile65/
+	../ray/sh_test1/newfile66/
+	../ray/sh_test1/newfile67/
+	../ray/sh_test1/newfile68/
+	../ray/sh_test1/newfile69/
+	../ray/sh_test1/newfile70/
+	../ray/sh_test2/result
+	../src/palindrome
+	../src/sh_test/out.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
