@@ -1,4 +1,4 @@
-fibo: code/fibo.c code/main.c include/fibo.h   
+fibo:    
 	cd code/ && make
 clean:
 	cd code/ && make clean
