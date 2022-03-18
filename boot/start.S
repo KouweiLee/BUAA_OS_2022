@@ -3,40 +3,41 @@
 #include <asm/asm.h>
 
 
-			.section .data.stk
+.section .data.stk
 KERNEL_STACK:
-			.space 0x8000
+.space 0x8000
 
 
-			.text
+		.text
 LEAF(_start) /*LEAF is defined in asm.h and LEAF functions don't call other functions*/                       
-	
-	.set	mips2      /*.set is used to instruct how the assembler works and control the order of instructions */
-	.set	reorder
 
-	/* Disable interrupts */
-	mtc0	zero, CP0_STATUS
+		.set	mips2      /*.set is used to instruct how the assembler works and control the order of instructions */
+		.set	reorder
 
-	/* Disable watch exception. */
-	mtc0    zero, CP0_WATCHLO
-	mtc0    zero, CP0_WATCHHI
+		/* Disable interrupts */
+		mtc0	zero, CP0_STATUS
 
-	/* disable kernel mode cache */
-	mfc0	t0, CP0_CONFIG
-	and	t0, ~0x7
-	ori	t0, 0x2
-	mtc0	t0, CP0_CONFIG
-	
-	/*
-      Exercise 1.4. Please complete this part.
-      To do: 
-	  set up stack.
-	  hint: you can reference the memory layout in the include/mmu.h.
-	  call main func.
-	*/
+		/* Disable watch exception. */
+		mtc0    zero, CP0_WATCHLO
+		mtc0    zero, CP0_WATCHHI
 
-			
-loop:
-	j	loop
-	nop
+		/* disable kernel mode cache */
+		mfc0	t0, CP0_CONFIG
+		and	t0, ~0x7
+		ori	t0, 0x2
+		mtc0	t0, CP0_CONFIG
+
+		/*
+		   Exercise 1.4. Please complete this part.
+		   To do: 
+		   set up stack.
+		   hint: you can reference the memory layout in the include/mmu.h.
+		   call main func.
+		 */
+		lui             sp, 0x8040
+		jal             main
+
+		loop:
+		j	loop
+		nop
 END(_start)            /*the function defined in asm.h*/
