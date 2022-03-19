@@ -61,23 +61,64 @@ lp_Print(void (*output)(void *, char *, int),
     /*
         Exercise 1.5. Please fill in two parts in this file.
     */
-
     for(;;) {
 
         /* Part1: your code here */
-
-	{ 
+	{
+		char *current = fmt;
+		while(1){
+			if(*current == '%'){
+				break;
+			}
+			else if(*current == '\0'){
+				break;
+			}
+			current++;
+		}	 
 	    /* scan for the next '%' */
 	    /* flush the string found so far */
-
+		OUTPUT(arg, fmt, current - fmt);
+		fmt = current;
 	    /* check "are we hitting the end?" */
+		if(*current == '\0'){
+			break;
+		}
 	}
 
 	
 	/* we found a '%' */
-	
+	fmt++;
 	/* check for long */
-
+	ladjust = 0;
+	if(*fmt == '-' ){
+	ladjust = 1; 
+	fmt++;
+	}
+	padc = ' ';
+	if(*fmt == '0'){
+	padc = '0';
+	fmt++;
+	}
+	width = 0;
+	while(IsDigit(*fmt))
+	{
+		width *= 10;
+		width += Ctod(*fmt);
+		fmt++;
+	}
+	prec = 6;
+	if(*fmt == '.'){
+		while(IsDigit(*fmt)){
+			prec *= 10;
+			prec += Ctod(*fmt);
+			fmt++;
+		}
+	}		
+	longFlag = 0;
+	if(*fmt == 'l'){
+		longFlag = 1;
+		fmt++;
+	}	 
 	/* check for other prefixes */
 
 	/* check format flag */
@@ -102,13 +143,13 @@ lp_Print(void (*output)(void *, char *, int),
 	    } else { 
 		num = va_arg(ap, int); 
 	    }
-	    
-		/*  Part2:
-			your code here.
-			Refer to other part (case 'b',case 'o' etc.) and func PrintNum to complete this part.
-			Think the difference between case 'd' and others. (hint: negFlag).
-		*/
-	    
+	   	 
+	   if(num < 0){
+		negFlag = 1;
+		num = -num;
+		}
+		length = PrintNum(buf,num,10,negFlag,width,ladjust,padc,0);
+		OUTPUT(arg, buf, length); 
 		break;
 
 	 case 'o':
@@ -169,7 +210,7 @@ lp_Print(void (*output)(void *, char *, int),
 	    fmt --;
 	    break;
 
-	 default:
+	 default://print %
 	    /* output this char as it is */
 	    OUTPUT(arg, fmt, 1);
 	}	/* switch (*fmt) */
@@ -260,8 +301,8 @@ PrintNum(char * buf, unsigned long u, int base, int negFlag,
     if (ladjust) {
 	padc = ' ';
     }
-    if (negFlag && !ladjust && (padc == '0')) {
-	for (i = actualLength-1; i< length-1; i++) buf[i] = padc;
+    if (negFlag && !ladjust && (padc == '0')) {   
+	for (i = actualLength-1; i< length-1; i++) buf[i] = padc;//the begin of i is to override '-' appended before
 	buf[length -1] = '-';
     } else {
 	for (i = actualLength; i< length; i++) buf[i] = padc;
