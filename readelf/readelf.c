@@ -49,34 +49,48 @@ int readelf(u_char *binary, int size)
 
 	int Nr;
 
-	Elf32_Shdr *shdr = NULL;
-
-	u_char *ptr_sh_table = NULL;
-	Elf32_Half sh_entry_count;
-	Elf32_Half sh_entry_size;
-
-
 	// check whether `binary` is a ELF file.
 	if (size < 4 || !is_elf_format(binary)) {
 		printf("not a standard elf format\n");
 		return 0;
 	}
 
+	/*
 	// get section table addr, section header number and section header size.
 	ptr_sh_table = (ehdr -> e_shoff) + binary;
 	sh_entry_count = ehdr -> e_shnum;
 	sh_entry_size = ehdr -> e_shentsize;
 	// for each section header, output section number and section addr. 
 	// hint: section number starts at 0.
-	/*for(Nr=0;Nr<sh_entry_count;Nr++){
+	for(Nr=0;Nr<sh_entry_count;Nr++){
 		shdr = (Elf32_Shdr *) (ptr_sh_table + Nr * sh_entry_size);//section table address 
 		printf("%d:0x%x\n",Nr,shdr -> sh_addr);
 	}*/
 	// labexam
-	shdr = (Elf32_Shdr *)(ptr_sh_table + 2*sh_entry_size);
-	printf("Read : %d:0x%x,0x%x\n", 2, shdr->sh_offset, shdr->sh_addr);
-	shdr = (Elf32_Shdr *)(ptr_sh_table + 3*sh_entry_size);
-	printf("Read : %d:0x%x,0x%x\n", 3, shdr->sh_offset, shdr->sh_addr);
+	Elf32_Phdr * phdr1 = NULL;
+	Elf32_Phdr * phdr2 = NULL;
+	u_char *ptr_ph_table = binary + (ehdr->e_phoff);
+	Elf32_Half count = ehdr->e_phnum;
+	Elf32_Half psize = ehdr->e_phentsize;
+	
+	for(Nr=0;Nr<count-1;Nr++){
+		phdr1 = (Elf32_Phdr *)(ptr_ph_table + Nr*psize);
+		phdr2 = phdr1 + 1;
+		Elf32_Addr l2 = phdr2->p_vaddr;
+		Elf32_Addr r1 = phdr1->p_vaddr + phdr1->p_memsz;
+		if(phdr1->p_vaddr + phdr1->p_memsz > phdr2->p_vaddr){
+			printf("Conflict at page va : 0x%x\n", (l2 & 0xfffff000));
+			return 0;
+		}
+		if((r1 & 0xfffff000) == (l2 & 0xfffff000)){
+			printf("Overlay at page va : 0x%x\n", (l2 & 0xfffff000));
+			return 0;
+		}
+	}
+	for(Nr=0;Nr<count;Nr++){
+		phdr1 = (Elf32_Phdr *)(ptr_ph_table + Nr*psize);
+		printf("%d:0x%x,0x%x\n",Nr,phdr1->p_filesz, phdr1->p_memsz);
+	}
 	return 0;
 }
 
