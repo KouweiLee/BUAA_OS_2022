@@ -88,8 +88,8 @@ int readelf(u_char *binary, int size)
 		phdr2=phdr1;
 		phdr1=phdr3;
 		}
-		Elf32_Addr l1 = phdr1->p_vaddr;
-        Elf32_Addr l2 = phdr2->p_vaddr;
+
+        l2 = phdr2->p_vaddr;
 		Elf32_Addr r1 = phdr1->p_vaddr + phdr1->p_memsz - 1;
 		if(r1 > l2){
 			printf("Conflict at page va : 0x%x\n", (l2 & 0xfffff000));
