@@ -77,13 +77,13 @@ int readelf(u_char *binary, int size)
 		phdr1 = (Elf32_Phdr *)(ptr_ph_table + Nr*psize);
 		phdr2 = phdr1 + 1;
 		Elf32_Addr l2 = phdr2->p_vaddr;
-		Elf32_Addr r1 = phdr1->p_vaddr + phdr1->p_filesz - 1;
+		Elf32_Addr r1 = phdr1->p_vaddr + phdr1->p_memsz - 1;
 		if(r1 > l2){
 			printf("Conflict at page va : 0x%x\n", (l2 & 0xfffff000));
 			return 0;
 		}
 		if((r1 & 0xfffff000) == (l2 & 0xfffff000)){
-			printf("Overlay at page va : 0x%x\n", (l2 & 0xfffff000));
+			printf("Overlay at page va : 0x%x\n", (l2 & 0xffff0000));
 			return 0;
 		}
 	}
