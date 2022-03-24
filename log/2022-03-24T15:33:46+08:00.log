@@ -1,0 +1,26 @@
+[33m[01m[05m[ You are changing the branch: lab1-1-Extra ][0m
+Autotest: Begin at Thu Mar 24 15:33:46 CST 2022
+[32m[ readelf.c found ][0m
+rm -rf *.o
+rm readelf
+rm: cannot remove 'readelf': No such file or directory
+make: *** [Makefile:16: clean] Error 1
+gcc -I./ -c main.c
+gcc -I./ -c readelf.c
+readelf.c: In function 'readelf':
+readelf.c:91:14: error: redefinition of 'l1'
+   91 |   Elf32_Addr l1 = phdr1->p_vaddr;
+      |              ^~
+readelf.c:84:14: note: previous definition of 'l1' was here
+   84 |   Elf32_Addr l1 = phdr1->p_vaddr;
+      |              ^~
+readelf.c:92:20: error: redefinition of 'l2'
+   92 |         Elf32_Addr l2 = phdr2->p_vaddr;
+      |                    ^~
+readelf.c:85:14: note: previous definition of 'l2' was here
+   85 |   Elf32_Addr l2 = phdr2->p_vaddr;
+      |              ^~
+make: *** [Makefile:6: readelf.o] Error 1
+[31m[01m[ Cannot find your readelf. Please check your readelf.c. ][0m
+[33m[01m[ You got 0 (of 100) this time. Thu Mar 24 15:33:48 CST 2022 ][0m
+Autotest: End at Thu Mar 24 15:33:48 CST 2022
