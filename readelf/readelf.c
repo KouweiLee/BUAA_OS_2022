@@ -67,17 +67,29 @@ int readelf(u_char *binary, int size)
 		printf("%d:0x%x\n",Nr,shdr -> sh_addr);
 	}*/
 	// labexam
+	// labexam
+	Elf32_Phdr * phdr = NULL;
 	Elf32_Phdr * phdr1 = NULL;
 	Elf32_Phdr * phdr2 = NULL;
+	Elf32_Phdr * phdr3 = NULL;
 	u_char *ptr_ph_table = binary + (ehdr->e_phoff);
 	Elf32_Half count = ehdr->e_phnum;
 	Elf32_Half psize = ehdr->e_phentsize;
 	
 	for(Nr=0;Nr<count-1;Nr++){
-		phdr1 = (Elf32_Phdr *)(ptr_ph_table + Nr*psize);
+		phdr = (Elf32_Phdr *)(ptr_ph_table + Nr*psize);
 		for(int i = Nr+1;i<count;i++){
-			phdr2 = (Elf32_Phdr *)(ptr_ph_table + i*psize);
+		phdr1 = phdr;
+		phdr2 = (Elf32_Phdr *)(ptr_ph_table + i*psize);
+		Elf32_Addr l1 = phdr1->p_vaddr;
 		Elf32_Addr l2 = phdr2->p_vaddr;
+		if(l1>l2){
+		phdr3=phdr2;
+		phdr2=phdr1;
+		phdr1=phdr3;
+		}
+		Elf32_Addr l1 = phdr1->p_vaddr;
+        Elf32_Addr l2 = phdr2->p_vaddr;
 		Elf32_Addr r1 = phdr1->p_vaddr + phdr1->p_memsz - 1;
 		if(r1 > l2){
 			printf("Conflict at page va : 0x%x\n", (l2 & 0xfffff000));
