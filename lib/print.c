@@ -40,7 +40,8 @@ lp_Print(void (*output)(void *, char *, int),
       (*output)(arg, s, l); \
     } \
   }
-    
+//if -- output the wrong message
+//l is the length of string, not including the /0	
     char buf[LP_MAX_BUF];
 
     char c;
@@ -90,14 +91,15 @@ lp_Print(void (*output)(void *, char *, int),
 	fmt++;
 	/* check for long */
 	ladjust = 0;
-	if(*fmt == '-' ){
-	ladjust = 1; 
-	fmt++;
-	}
 	padc = ' ';
-	if(*fmt == '0'){
-	padc = '0';
-	fmt++;
+	while(*fmt == '-' || *fmt == '0'){
+		if(*fmt == '-'){
+			ladjust = 1;
+		}
+		else if(*fmt == '0'){
+			padc = '0';
+		}
+		fmt++;
 	}
 	width = 0;
 	while(IsDigit(*fmt))
