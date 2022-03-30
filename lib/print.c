@@ -110,6 +110,8 @@ lp_Print(void (*output)(void *, char *, int),
 	}
 	prec = 6;
 	if(*fmt == '.'){
+		fmt++;
+		prec = 0;
 		while(IsDigit(*fmt)){
 			prec *= 10;
 			prec += Ctod(*fmt);
@@ -234,7 +236,7 @@ PrintChar(char * buf, char c, int length, int ladjust)
     if (length < 1) length = 1;
     if (ladjust) {
 	*buf = c;
-	for (i=1; i< length; i++) buf[i] = ' ';
+	for (i=1; i< length; i++) buf[i] = ' ';//the first of buf is c
     } else {
 	for (i=0; i< length-1; i++) buf[i] = ' ';
 	buf[length - 1] = c;
@@ -248,14 +250,14 @@ PrintString(char * buf, char* s, int length, int ladjust)
     int i;
     int len=0;
     char* s1 = s;
-    while (*s1++) len++;
+    while (*s1++) len++;//calculate the real length of s
     if (length < len) length = len;
 
     if (ladjust) {
 	for (i=0; i< len; i++) buf[i] = s[i];
-	for (i=len; i< length; i++) buf[i] = ' ';
+	for (i=len; i< length; i++) buf[i] = ' ';//append ' ' after buf 
     } else {
-	for (i=0; i< length-len; i++) buf[i] = ' ';
+	for (i=0; i< length-len; i++) buf[i] = ' ';//append ' ' in front of buf
 	for (i=length-len; i < length; i++) buf[i] = s[i-length+len];
     }
     return length;
@@ -264,7 +266,8 @@ PrintString(char * buf, char* s, int length, int ladjust)
 int
 PrintNum(char * buf, unsigned long u, int base, int negFlag, 
 	 int length, int ladjust, char padc, int upcase)
-{
+{//buf is what you want to print, u  is the non-flag  number, 
+ //length is width, upcase is 0 when you want to print a not A.
     /* algorithm :
      *  1. prints the number from left to right in reverse form.
      *  2. fill the remaining spaces with padc if length is longer than
