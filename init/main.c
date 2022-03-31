@@ -22,9 +22,9 @@ int main()
 struct my_struct t2;
 t1.size=3; t1.c='b'; t1.array[0]=0; t1.array[1]=1; t1.array[2]=2;
 t2.size=2; t2.c='Q'; t2.array[0]=-1; t2.array[1]=-2;
-printf("%T\n",&t1);
-printf("%T\n",&t2);
-	printf("main.c:\tmain is start ...\n");
+printf("%04T",&t1);	
+printf("%-04T",&t2);
+printf("main.c:\tmain is start ...\n");
 	mips_init();
 	panic("main is over is error!");
 

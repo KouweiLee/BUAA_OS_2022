@@ -224,7 +224,7 @@ lp_Print(void (*output)(void *, char *, int),
 		OUTPUT(arg,buf,length);
 		length = PrintChar(buf,',',1,0);
 		OUTPUT(arg,buf,length);
-		length = PrintChar(buf,mp->c,1,0);
+		length = PrintChar(buf,mp->c,width,ladjust);
 		OUTPUT(arg,buf,length);
 		length = PrintChar(buf,',',1,0);
 		OUTPUT(arg,buf,length);
