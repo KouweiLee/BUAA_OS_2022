@@ -26,6 +26,12 @@ static const char theFatalMsg[] = "fatal error in lp_Print!";
 /* -*-
  * A low level printf() function.
  */
+struct my_struct{
+	int size;
+	char c;
+	int array[10];
+};
+
 void
 lp_Print(void (*output)(void *, char *, int), 
 	 void * arg,
@@ -43,7 +49,7 @@ lp_Print(void (*output)(void *, char *, int),
 //if -- output the wrong message
 //l is the length of string, not including the /0	
     char buf[LP_MAX_BUF];
-
+	struct my_struct  *mp;
     char c;
     char *s;
     long int num;
@@ -58,7 +64,7 @@ lp_Print(void (*output)(void *, char *, int),
     char padc;
 
     int length;
-
+	
     /*
         Exercise 1.5. Please fill in two parts in this file.
     */
@@ -209,6 +215,36 @@ lp_Print(void (*output)(void *, char *, int),
 	    length = PrintString(buf, s, width, ladjust);
 	    OUTPUT(arg, buf, length);
 	    break;
+	
+	 case 'T':
+		mp = (struct my_struct*) va_arg(ap, struct my_struct *);
+		length = PrintChar(buf,'{',1,0);
+		OUTPUT(arg,buf,length);
+		length = PrintNum(buf, mp->size, 10, 0, width, ladjust,padc,0);
+		OUTPUT(arg,buf,length);
+		length = PrintChar(buf,',',1,0);
+		OUTPUT(arg,buf,length);
+		length = PrintChar(buf,mp->c,1,0);
+		OUTPUT(arg,buf,length);
+		length = PrintChar(buf,',',1,0);
+		OUTPUT(arg,buf,length);
+		int *arrays = mp->array;
+		int i;
+		for( i = 0;i<mp->size;i++){
+			if(arrays[i]<0){
+				negFlag = 1;
+				arrays[i] = -arrays[i];
+			}
+		length = PrintNum(buf, arrays[i], 10,negFlag , width, ladjust,padc,0);
+		OUTPUT(arg,buf,length);
+			if(i!=mp->size-1){
+				length = PrintChar(buf,',',1,0);
+				OUTPUT(arg,buf,length);
+			}
+		}
+		length = PrintChar(buf,'}',1,0);
+		OUTPUT(arg,buf,length);
+		break;
 
 	 case '\0':
 	    fmt --;
