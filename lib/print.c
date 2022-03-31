@@ -234,9 +234,9 @@ lp_Print(void (*output)(void *, char *, int),
 		OUTPUT(arg,buf,length);
 		int *arrays = (int *)(size+2);
 		int i;
-		negFlag = 0;
 		for( i = 0;i<*size;i++){
 			int anum = arrays[i];
+			negFlag = 0;
 			if(anum<0){
 				negFlag = 1;
 				anum = -anum;

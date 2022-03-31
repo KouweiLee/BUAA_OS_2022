@@ -20,7 +20,7 @@ int main()
 {   
 	struct my_struct t1;
 struct my_struct t2;
-t1.size=3; t1.c='b'; t1.array[0]=0; t1.array[1]=1; t1.array[2]=2;
+t1.size=3; t1.c='b'; t1.array[0]=0; t1.array[1]=-1; t1.array[2]=2;
 t2.size=2; t2.c='Q'; t2.array[0]=-1; t2.array[1]=-2;
 printf("%04T%d%T\n",&t1,123,&t2);	
 printf("%04T%d%T\n",&t2,123,&t1);
