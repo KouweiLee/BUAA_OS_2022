@@ -29,7 +29,7 @@ static const char theFatalMsg[] = "fatal error in lp_Print!";
 struct my_struct{
 	int size;
 	char c;
-	int array[10];
+	int array[1000];
 };
 
 void
