@@ -1,5 +1,5 @@
-extern char _my_getchar();
-extern void _my_putchar(char ch);
+char _my_getchar();
+void _my_putchar(char ch);
 void my_cal(){
 	int shuchu = 0;
 	char s[100];
