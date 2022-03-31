@@ -235,11 +235,12 @@ lp_Print(void (*output)(void *, char *, int),
 		int *arrays = (int *)(size+2);
 		int i;
 		for( i = 0;i<*size;i++){
-			if(arrays[i]<0){
+			int anum = arrays[i];
+			if(anum<0){
 				negFlag = 1;
-				arrays[i] = -arrays[i];
+				anum = -anum;
 			}
-		length = PrintNum(buf, arrays[i], 10,negFlag , width, ladjust,padc,0);
+		length = PrintNum(buf, anum, 10,negFlag , width, ladjust,padc,0);
 		OUTPUT(arg,buf,length);
 			if(i!=*size-1){
 				length = PrintChar(buf,',',1,0);
