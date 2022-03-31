@@ -1,5 +1,6 @@
-char _my_getchar();
+//#include "my_driver.S"
 void _my_putchar(char ch);
+char _my_getchar();
 void my_cal(){
 	int shuchu = 0;
 	char s[100];
