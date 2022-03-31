@@ -6,12 +6,12 @@ LEAF(_my_getchar)
 
 loop_begin:
 	lui s0, 0xb000
-	lb t1, 0x00(s0)
-	beq t1,zero,loop_begin
+	lb s1, 0x00(s0)
+	beq s1,zero,loop_begin
 	nop
 
-sb t1, 0x00(s0)
-move v0, t1
+sb s1, 0x00(s0)
+move v0, s1
 jr ra
 nop
 END(_my_getchar)
