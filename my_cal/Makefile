@@ -1,5 +1,7 @@
 INCLUDES := -I../include
 
+%.o: %.c
+	$(CC) $(DEFS) $(CFLAGS) $(INCLUDES) -c $<
 %.o: %.S
 	$(CC) $(DEFS) $(CFLAGS) $(INCLUDES) -c $<
 
