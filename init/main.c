@@ -13,11 +13,11 @@
 #include <pmap.h>
 
 int main()
-{   
+{
 	printf("main.c:\tmain is start ...\n");
+
 	mips_init();
 	panic("main is over is error!");
 
-	//printf("my name is %024s, he is a %-24s, his age is %-12.4ld\n", "cjj", "boy", 20);
 	return 0;
 }
