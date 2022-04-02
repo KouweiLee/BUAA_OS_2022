@@ -154,13 +154,17 @@
  * Note: this function has big differences with LIST_INSERT_HEAD !
  */
 #define LIST_INSERT_TAIL(head, elm, field) do {\
-	LIST_NEXT((elm), field) = LIST_FIRST((head));\
-	while(LIST_NEXT((elm),field)->field.le_next!=NULL){\
-		LIST_NEXT((elm),field) = LIST_NEXT((LIST_NEXT((elm),field)),field); \
+	if((LIST_NEXT((elm), field) = LIST_FIRST((head))) != NULL){ \
+		while(LIST_NEXT((elm),field)->field.le_next!=NULL){\
+			LIST_NEXT((elm),field) = LIST_NEXT((LIST_NEXT((elm),field)),field); \
+		}\
+		(elm)->field.le_prev = &(LIST_NEXT((elm),field)->field.le_next);\
+		LIST_NEXT((elm),field)->field.le_next = (elm);\
+		LIST_NEXT((elm),field) = NULL;}\
+	else {\
+		LIST_FIRST((head)) = (elm);\
+		(elm)->field.le_prev = &LIST_FIRST((head));\
 	}\
-	(elm)->field.le_prev = &(LIST_NEXT((elm),field)->field.le_next);\
-	LIST_NEXT((elm),field)->field.le_next = (elm);\
-	LIST_NEXT((elm),field) = NULL;\
 } while(0) 
 /* finish your code here. */
 

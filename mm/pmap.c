@@ -179,22 +179,23 @@ void page_init(void)
 {
 	/* Step 1: Initialize page_free_list. */
 	/* Hint: Use macro `LIST_INIT` defined in include/queue.h. */
-	LIST_INIT(page_free_list)
+	LIST_INIT(&page_free_list);
 
 	/* Step 2: Align `freemem` up to multiple of BY2PG. */
 	freemem =  ROUND(freemem, BY2PG);
 	
 	/* Step 3: Mark all memory blow `freemem` as used(set `pp_ref`
 	 * filed to 1) */
+	
 	struct Page *temp = pages;
-	struct Page *finish = pa2page(freemem);
-	while(temp != finish){
-		temp -> pp_ref = 1;
-		temp = temp->pp_link.le_next;
+	while(page2kva(temp)<freemem){
+		temp -> pp_ref =1;
+		temp ++;//now pages is only an array, not the list
 	}
-	while(temp->pp_link.le_next != NULL){
+	while(page2ppn(temp) < npage){
 		temp -> pp_ref = 0;
 		LIST_INSERT_HEAD(&page_free_list,temp ,pp_link);
+		temp ++;
 	}
 	/* Step 4: Mark the other memory as free. */
 }
@@ -216,15 +217,18 @@ Hint:
 Use LIST_FIRST and LIST_REMOVE defined in include/queue.h .*/
 int page_alloc(struct Page **pp)
 {
-	struct Page *ppage_temp;
+	struct Page *tmp;
+	if (LIST_EMPTY(&page_free_list)) return -E_NO_MEM;
+	// negative return value indicates exception.
 
-	/* Step 1: Get a page from free memory. If fail, return the error code.*/
+	tmp = LIST_FIRST(&page_free_list);
 
+	/* III. remove this page from the list */;
+	LIST_REMOVE(tmp, pp_link);
+	bzero(page2kva(tmp), BY2PG);
 
-	/* Step 2: Initialize this page.
-	 * Hint: use `bzero`. */
-
-
+	*pp = tmp;
+	return 0;
 }
 
 /* Exercise 2.5 */
@@ -233,15 +237,10 @@ int page_alloc(struct Page **pp)
 Hint:
 When you free a page, just insert it to the page_free_list.*/
 void page_free(struct Page *pp)
-{
-	/* Step 1: If there's still virtual address referring to this page, do nothing. */
-
-
-	/* Step 2: If the `pp_ref` reaches 0, mark this page as free and return. */
-
-
-	/* If the value of `pp_ref` is less than 0, some error must occurr before,
-	 * so PANIC !!! */
+{  if (pp->pp_ref == 0) {
+	LIST_INSERT_HEAD(&page_free_list, pp, pp_link);
+	return;	}
+	else if (pp->pp_ref > 0) return; // in use
 	panic("cgh:pp->pp_ref is less than zero\n");
 }
 
