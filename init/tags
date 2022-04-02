@@ -5,5 +5,7 @@
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
 INCLUDES	Makefile	/^INCLUDES := -I..\/include$/;"	m
+bcopy	init.c	/^void bcopy(const void *src, void *dst, size_t len)$/;"	f
+bzero	init.c	/^void bzero(void *b, size_t len)$/;"	f
 main	main.c	/^int main()$/;"	f
 mips_init	init.c	/^void mips_init()$/;"	f

@@ -6,7 +6,7 @@
 
 
 /* These variables are set by mips_detect_memory() */
-u_long maxpa;            /* Maximum physical address */
+u_long maxpa;            /* Maximum physical address + 1 */
 u_long npage;            /* Amount of memory(in pages) */
 u_long basemem;          /* Amount of base memory(in bytes) */
 u_long extmem;           /* Amount of extended memory(in bytes) */
@@ -27,7 +27,10 @@ void mips_detect_memory()
 {
 	/* Step 1: Initialize basemem.
 	 * (When use real computer, CMOS tells us how many kilobytes there are). */
-
+	maxpa = 0x04000000;
+	basemem = 64 * 1024 *1024;
+	npage = basemem / BY2PG;
+	extmem = 0;
 	// Step 2: Calculate corresponding npage value.
 
 	printf("Physical memory: %dK available, ", (int)(maxpa / 1024));
@@ -176,15 +179,23 @@ void page_init(void)
 {
 	/* Step 1: Initialize page_free_list. */
 	/* Hint: Use macro `LIST_INIT` defined in include/queue.h. */
-
+	LIST_INIT(page_free_list)
 
 	/* Step 2: Align `freemem` up to multiple of BY2PG. */
-
-
+	freemem =  ROUND(freemem, BY2PG);
+	
 	/* Step 3: Mark all memory blow `freemem` as used(set `pp_ref`
 	 * filed to 1) */
-
-
+	struct Page *temp = pages;
+	struct Page *finish = pa2page(freemem);
+	while(temp != finish){
+		temp -> pp_ref = 1;
+		temp = temp->pp_link.le_next;
+	}
+	while(temp->pp_link.le_next != NULL){
+		temp -> pp_ref = 0;
+		LIST_INSERT_HEAD(&page_free_list,temp ,pp_link);
+	}
 	/* Step 4: Mark the other memory as free. */
 }
 
