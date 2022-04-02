@@ -99,7 +99,7 @@ static Pte *boot_pgdir_walk(Pde *pgdir, u_long va, int create)
 	}
 
 	// return the address of entry of page table
-	return ((Pte *)(KADDR(*pgdir_entry)) + PTX(va));
+	return ((Pte *)(KADDR(PTE_ADDR(*pgdir_entry))) + PTX(va));
 }
 
 /* Exercise 2.7 */
@@ -271,12 +271,13 @@ int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte)
 			if ((ret = page_alloc(&page)) < 0) return ret;
 			*pgdir_entry = (page2pa(page))
 				| PTE_V | PTE_R;
+			page->pp_ref++;//!!!!!!!!!!!!!!!!!!!!!!
 		} else {
 			*ppte = 0;
 			return 0;
 		}
 	}
-	*ppte = ((Pte *)(KADDR(*pgdir_entry))) + PTX(va);
+	*ppte = ((Pte *)(KADDR(PTE_ADDR(*pgdir_entry)))) + PTX(va);
 	return 0;
 }
 
