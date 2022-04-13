@@ -14,7 +14,7 @@
  * Part 1.  MIPS definitions.
  */
 #define BY2PG		4096		// bytes to a page
-#define PDMAP		(4*1024*1024)	// bytes mapped by a page directory entry
+#define PDMAP		(4*1024*1024)	// bytes mapped by a page directory entry = 4MB
 #define PGSHIFT		12
 #define PDSHIFT		22		// log2(PDMAP)
 #define PDX(va)		((((u_long)(va))>>22) & 0x03FF)
@@ -152,14 +152,14 @@ extern volatile Pde *vpd[];
 			panic("PADDR called with invalid kva %08lx", a);\
 		a - ULIM;						\
 	})
-
+//ULIM is 0x8000_0000
 // translates from physical address to kernel virtual address.
 #define KADDR(pa)						\
 	({								\
 		u_long ppn = PPN(pa);					\
 		if (ppn >= npage)					\
 			panic("KADDR called with invalid pa %08lx", (u_long)pa);\
-		(pa) + ULIM;					\
+		((u_long)(pa)) + ULIM;					\
 	})
 
 #define assert(x)	\

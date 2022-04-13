@@ -22,7 +22,7 @@ struct Page {
 };
 
 extern struct Page *pages;
-
+//Get the page number of pp
 static inline u_long
 page2ppn(struct Page *pp)
 {

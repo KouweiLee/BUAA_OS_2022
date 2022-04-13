@@ -36,7 +36,7 @@ _panic(const char *file, int line, const char *fmt, ...)
 
 	va_start(ap, fmt);
 	printf("panic at %s:%d: ", file, line);
-	lp_Print(myoutput, 0, (char *)fmt, ap);
+	lp_Print(myoutput, 0, (char *)fmt, ap);// 0 is nothing
 	printf("\n");
 	va_end(ap);
 

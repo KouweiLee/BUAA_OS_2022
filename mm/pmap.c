@@ -17,8 +17,9 @@ struct Page *pages;
 static u_long freemem;
 
 static struct Page_list page_free_list;	/* Free list of physical pages */
-
-
+/*
+page_free_list is not a pointer, it need to be use as a pointer
+*/
 /* Exercise 2.1 */
 /* Overview:
    Initialize basemem and npage.
@@ -614,7 +615,7 @@ void pageout(int va, int context)
 	struct Page *p = NULL;
 
 	if (context < 0x80000000) {
-		panic("tlb refill and alloc error!");
+		panic("tlb refill and alloc error!");// when panic, there is an infinite loop
 	}
 
 	if ((va > 0x7f400000) && (va < 0x7f800000)) {
