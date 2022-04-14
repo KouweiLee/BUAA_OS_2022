@@ -5,11 +5,24 @@
 #include "queue.h"
 #include "mmu.h"
 #include "printf.h"
+void buddy_init(void);
+int buddy_alloc(u_int size, u_int *pa, u_char *pi);
+void buddy_free(u_int pa);
 
-
+//const int m4MB = 0x400000;
+//const int m32MB = 0x2000000;
+//int MFLAGS = 0;
+LIST_HEAD(Buddy_list, Buddy);
 LIST_HEAD(Page_list, Page);
 typedef LIST_ENTRY(Page) Page_LIST_entry_t;
-
+typedef LIST_ENTRY(Buddy) Buddy_LIST_entry_t;
+struct Buddy {
+	Buddy_LIST_entry_t pp_link;
+	u_short pp_ref;
+	int paddr;
+	int size;
+	int flag;
+};
 struct Page {
 	Page_LIST_entry_t pp_link;	/* free list link */
 

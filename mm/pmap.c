@@ -12,10 +12,13 @@ u_long basemem;          /* Amount of base memory(in bytes) */
 u_long extmem;           /* Amount of extended memory(in bytes) */
 
 Pde *boot_pgdir;
-
+const int m4MB = 0x400000;
+const int m32MB = 0x2000000;
+int MFLAGS = 0;
 struct Page *pages;
+struct Buddy *buddys;
 static u_long freemem;
-
+struct Buddy_list buddy_free_list;
 static struct Page_list page_free_list;	/* Free list of physical pages */
 /*
 page_free_list is not a pointer, it need to be use as a pointer
@@ -148,7 +151,7 @@ void mips_vm_init()
 	mCONTEXT = (int)pgdir;
 
 	boot_pgdir = pgdir;
-
+	
 	/* Step 2: Allocate proper size of physical memory for global array `pages`,
 	 * for physical memory management. Then, map virtual address `UPAGES` to
 	 * physical address `pages` allocated before. In consideration of alignment,
@@ -163,7 +166,6 @@ void mips_vm_init()
 	envs = (struct Env *)alloc(NENV * sizeof(struct Env), BY2PG, 1);
 	n = ROUND(NENV * sizeof(struct Env), BY2PG);
 	boot_map_segment(pgdir, UENVS, n, PADDR(envs), PTE_R);
-
 	printf("pmap.c:\t mips vm init success\n");
 }
 
@@ -198,8 +200,96 @@ void page_init(void)
 	}
 	/* Step 4: Mark the other memory as free. */
 }
+int pot = 0;
+void buddy_init(void){
+	int pa0 = m32MB;
+	buddys = (struct Buddy *) alloc((m32MB/BY2PG * sizeof(struct Buddy )), BY2PG, 1);
+	struct Buddy * tmp = buddys;
+	int i = 0;
+	for(i=0;i<8;i++){
+		tmp->size = m4MB;
+		tmp->paddr = m32MB + m4MB *i;
+		tmp->flag = MFLAGS++;
+		tmp->pp_ref = 0;
+		LIST_INSERT_HEAD(&buddy_free_list, tmp, pp_link);
+		pot++;
+		tmp = buddys + pot;
+	}
+}
 
-/* Exercise 2.4 */
+int buddy_alloc(u_int size, u_int *pa, u_char *pi){
+	struct Buddy* tmp;
+	LIST_FOREACH(tmp, &buddy_free_list, pp_link){
+		if((tmp->size >= size) && (tmp->pp_ref == 0)){
+			break;
+		}
+	}
+	if(tmp == NULL) {
+		return -1;
+	}
+	while(tmp->size >= 2*size && tmp->size != BY2PG){
+		pot++;
+		struct Buddy *tmp2 = buddys + pot;
+		tmp->size = tmp->size / 2;
+		tmp->flag = MFLAGS++;
+		tmp2->size = tmp->size;
+		tmp2->flag = tmp->flag;
+		tmp2->paddr = tmp->paddr + tmp->size;
+		tmp2->pp_ref = 0;
+		LIST_INSERT_AFTER(tmp, tmp2, pp_link);
+	}
+	
+	tmp->pp_ref = 1;
+	*pa = tmp->paddr;
+	int i,  pos = tmp->size / BY2PG;
+	for(i=0;i<32;i++){
+		if((pos >> i) == 1){
+			*pi = i;
+			break;
+		}
+	}
+	return 0;
+}
+
+void buddy_free(u_int pa){
+	struct Buddy* tmp;
+	LIST_FOREACH(tmp, &buddy_free_list, pp_link){
+		if(tmp->paddr == pa){
+			break;
+		}
+	}
+	struct Buddy* tmp2;
+	int out = 0;
+	while(1){
+		tmp->pp_ref = 0;
+		struct Buddy* next = LIST_NEXT(tmp, pp_link);
+		if(next != NULL && next->flag == tmp->flag){//back
+			if(next->pp_ref == 0){
+				tmp->size = tmp->size *2;
+				tmp->flag = MFLAGS++;
+				LIST_REMOVE(next, pp_link);
+			}else {
+				out = 1;
+			}
+		}else {// front 
+			LIST_FOREACH(tmp2, &buddy_free_list, pp_link){
+				if(LIST_NEXT(tmp2, pp_link) == tmp && LIST_NEXT(tmp2, pp_link)->pp_ref == 0){
+					tmp2->size = tmp2->size * 2;
+					tmp2->flag = MFLAGS++;
+					LIST_REMOVE(tmp, pp_link);
+					tmp = tmp2;
+					break;
+				} else if(tmp2 == tmp){
+					out = 1;
+				}
+			}
+		}
+		if(out==1){
+			break;
+		}
+	}
+}
+/* Exlercise 2.4 */
 /*Overview:
   Allocates a physical page from free memory, and clear this page.
 
