@@ -210,7 +210,6 @@ void buddy_init(void){
 	for(i=0;i<8;i++){
 		tmp->size = m4MB;
 		tmp->paddr = m32MB + m4MB *i;
-		tmp->flag = MFLAGS++;
 		tmp->left = 1;
 		tmp->pbef = 0;
 		tmp->bef[tmp->pbef++] = 1;
@@ -235,10 +234,8 @@ int buddy_alloc(u_int size, u_int *pa, u_char *pi){
 		pot++;
 		struct Buddy *tmp2 = buddys + pot;
 		tmp->size = tmp->size / 2;
-		tmp->flag ++ ;
 		tmp->bef[tmp->pbef++] = tmp->left;
 		tmp2->size = tmp->size;
-		tmp2->flag = tmp->flag;
 		tmp2->pbef = tmp->pbef;
 		tmp2->bef[tmp->pbef-1] = tmp->left;
 		tmp->left = 1;
@@ -276,10 +273,9 @@ void buddy_free(u_int pa){
 		}
 		if(tmp->left == 1){
 		struct Buddy* next = LIST_NEXT(tmp, pp_link);
-		if(next != NULL && next->flag == tmp->flag){//back
+		if(next != NULL ){//back
 			if(next->pp_ref == 0){
 				tmp->size = tmp->size *2;
-				tmp->flag = tmp->flag - 1;
 				tmp->left = tmp->bef[--tmp->pbef];	 
 				LIST_REMOVE(next, pp_link);
 			}else {
@@ -290,7 +286,6 @@ void buddy_free(u_int pa){
 			LIST_FOREACH(tmp2, &buddy_free_list, pp_link){
 				if(LIST_NEXT(tmp2, pp_link) == tmp && LIST_NEXT(tmp2, pp_link)->pp_ref == 0){
 					tmp2->size = tmp2->size * 2;
-					tmp2->flag = tmp->flag - 1;
 					tmp2->left = tmp2->bef[--tmp->pbef];
 					LIST_REMOVE(tmp, pp_link);
 					tmp = tmp2;

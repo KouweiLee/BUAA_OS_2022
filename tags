@@ -73,6 +73,8 @@ AT	include/asm/regdef.h	16;"	d
 BUILD_HANDLER	lib/genex.S	/^BUILD_HANDLER reserved do_reserved cli$/;"	l
 BUILD_HANDLER	lib/genex.S	/^BUILD_HANDLER tlb	do_refill	cli$/;"	l
 BY2PG	include/mmu.h	16;"	d
+Buddy	include/pmap.h	/^struct Buddy {$/;"	s
+Buddy_LIST_entry_t	include/pmap.h	/^typedef LIST_ENTRY(Buddy) Buddy_LIST_entry_t;$/;"	t
 CC	drivers/Makefile	/^CC			  := $(CROSS_COMPILE)gcc$/;"	m
 CC	include.mk	/^CC            := $(CROSS_COMPILE)gcc$/;"	m
 CC	readelf/Makefile	/^CC        := gcc$/;"	m
@@ -234,6 +236,7 @@ LOG2NENV	include/env.h	11;"	d
 LP_MAX_BUF	include/print.h	18;"	d
 MAXERROR	include/error.h	24;"	d
 MAXERROR	include/mmu.h	126;"	d
+MFLAGS	mm/pmap.c	/^int MFLAGS = 0;$/;"	v
 MIN	include/types.h	33;"	d
 MIN	readelf/types.h	33;"	d
 NENV	include/env.h	12;"	d
@@ -426,11 +429,18 @@ andi	lib/genex.S	/^andi	t1, t0, STATUSF_IP4$/;"	l
 assert	include/mmu.h	165;"	d
 basemem	mm/pmap.c	/^u_long basemem;          \/* Amount of base memory(in bytes) *\/$/;"	v
 bcopy	init/init.c	/^void bcopy(const void *src, void *dst, size_t len)$/;"	f
+bef	include/pmap.h	/^	u_short bef[100];$/;"	m	struct:Buddy
 bnez	lib/genex.S	/^bnez	t1, timer_irq$/;"	l
 boot_dir	Makefile	/^boot_dir	  := boot$/;"	m
 boot_map_segment	mm/pmap.c	/^void boot_map_segment(Pde *pgdir, u_long va, u_long size, u_long pa, int perm)$/;"	f
 boot_pgdir	mm/pmap.c	/^Pde *boot_pgdir;$/;"	v
 boot_pgdir_walk	mm/pmap.c	/^static Pte *boot_pgdir_walk(Pde *pgdir, u_long va, int create)$/;"	f	file:
+buddy_alloc	mm/pmap.c	/^int buddy_alloc(u_int size, u_int *pa, u_char *pi){$/;"	f
+buddy_free	mm/pmap.c	/^void buddy_free(u_int pa){$/;"	f
+buddy_free_list	mm/pmap.c	/^struct Buddy_list buddy_free_list;$/;"	v	typeref:struct:Buddy_list
+buddy_init	mm/pmap.c	/^void buddy_init(void){$/;"	f
+buddy_test	init/init.c	/^static void buddy_test(){$/;"	f	file:
+buddys	mm/pmap.c	/^struct Buddy *buddys;$/;"	v	typeref:struct:Buddy
 bzero	init/init.c	/^void bzero(void *b, size_t len)$/;"	f
 cp0_badvaddr	include/trap.h	/^	unsigned long cp0_badvaddr;$/;"	m	struct:Trapframe
 cp0_cause	include/trap.h	/^	unsigned long cp0_cause;$/;"	m	struct:Trapframe
@@ -471,6 +481,7 @@ env_tf	include/env.h	/^	struct Trapframe env_tf;        \/\/ Saved registers$/;"
 env_xstacktop	include/env.h	/^	u_int env_xstacktop;            \/\/ top of exception stack$/;"	m	struct:Env
 envs	lib/env.c	/^struct Env *envs = NULL;		\/\/ All environments$/;"	v	typeref:struct:Env
 extmem	mm/pmap.c	/^u_long extmem;           \/* Amount of extended memory(in bytes) *\/$/;"	v
+flag	include/pmap.h	/^	int flag;$/;"	m	struct:Buddy
 fp	include/asm-mips3k/regdef.h	46;"	d
 fp	include/asm/regdef.h	46;"	d
 freemem	mm/pmap.c	/^static u_long freemem;$/;"	v	file:
@@ -500,12 +511,15 @@ k1	include/stackframe.h	/^bnez	k1, 1f$/;"	v
 k1	include/stackframe.h	/^move	k1, sp$/;"	v
 k1	include/stackframe.h	/^subu	sp, k1, TF_SIZE$/;"	v
 k1	include/stackframe.h	/^xori	k1, 0x1000$/;"	v
+left	include/pmap.h	/^	u_short left;$/;"	m	struct:Buddy
 lib_dir	Makefile	/^lib_dir		  := lib$/;"	m
 link_script	Makefile	/^link_script   := $(tools_dir)\/scse0_3.lds$/;"	m
 lo	include/trap.h	/^	unsigned long lo;$/;"	m	struct:Trapframe
 loop	boot/start.S	/^loop:$/;"	l
 lp_Print	lib/print.c	/^lp_Print(void (*output)(void *, char *, int), $/;"	f
 lp_Print	lib/testprint.c	/^lp_Print(void (*output)(void *, char *, int), $/;"	f
+m32MB	mm/pmap.c	/^const int m32MB = 0x2000000;$/;"	v
+m4MB	mm/pmap.c	/^const int m4MB = 0x400000;$/;"	v
 mCONTEXT	boot/start.S	/^mCONTEXT:$/;"	l
 main	init/main.c	/^int main()$/;"	f
 main	readelf/main.c	/^int main(int argc,char *argv[])$/;"	f
@@ -513,7 +527,7 @@ maxpa	mm/pmap.c	/^u_long maxpa;            \/* Maximum physical address + 1 *\/$
 mfc0	lib/genex.S	/^mfc0	t0, CP0_CAUSE$/;"	l
 mfc0	lib/genex.S	/^mfc0	t2, CP0_STATUS$/;"	l
 mips_detect_memory	mm/pmap.c	/^void mips_detect_memory()$/;"	f
-mips_init	init/init.c	/^void mips_init()$/;"	f
+mips_init	init/init.c	/^void mips_init(){$/;"	f
 mips_vm_init	mm/pmap.c	/^void mips_vm_init()$/;"	f
 mm_dir	Makefile	/^mm_dir		  := mm$/;"	m
 modules	Makefile	/^modules		  := boot drivers init lib mm$/;"	m
@@ -533,6 +547,7 @@ p_paddr	readelf/kerelf.h	/^        Elf32_Addr      p_paddr;                \/* S
 p_type	readelf/kerelf.h	/^        Elf32_Word      p_type;                 \/* Segment type *\/$/;"	m	struct:__anon3
 p_vaddr	readelf/kerelf.h	/^        Elf32_Addr      p_vaddr;                \/* Segment virtual address *\/$/;"	m	struct:__anon3
 pa2page	include/pmap.h	/^pa2page(u_long pa)$/;"	f
+paddr	include/pmap.h	/^	int paddr;$/;"	m	struct:Buddy
 page2kva	include/pmap.h	/^page2kva(struct Page *pp)$/;"	f
 page2pa	include/pmap.h	/^page2pa(struct Page *pp)$/;"	f
 page2ppn	include/pmap.h	/^page2ppn(struct Page *pp)$/;"	f
@@ -548,10 +563,14 @@ page_remove	mm/pmap.c	/^void page_remove(Pde *pgdir, u_long va)$/;"	f
 pageout	mm/pmap.c	/^void pageout(int va, int context)$/;"	f
 pages	mm/pmap.c	/^struct Page *pages;$/;"	v	typeref:struct:Page
 panic	include/printf.h	23;"	d
+pbef	include/pmap.h	/^	int pbef;$/;"	m	struct:Buddy
 pc	include/trap.h	/^	unsigned long pc;$/;"	m	struct:Trapframe
 pgdir_walk	mm/pmap.c	/^int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte)$/;"	f
 physical_memory_manage_check	mm/pmap.c	/^void physical_memory_manage_check(void)$/;"	f
+pot	mm/pmap.c	/^int pot = 0;$/;"	v
+pp_link	include/pmap.h	/^	Buddy_LIST_entry_t pp_link;$/;"	m	struct:Buddy
 pp_link	include/pmap.h	/^	Page_LIST_entry_t pp_link;	\/* free list link *\/$/;"	m	struct:Page
+pp_ref	include/pmap.h	/^	u_short pp_ref;$/;"	m	struct:Buddy
 pp_ref	include/pmap.h	/^	u_short pp_ref;$/;"	m	struct:Page
 printcharc	drivers/gxconsole/console.c	/^void printcharc(char ch)$/;"	f
 printf	lib/printf.c	/^void printf(char *fmt, ...)$/;"	f
@@ -593,6 +612,7 @@ sh_name	readelf/kerelf.h	/^        Elf32_Word sh_name;                 \/* Secti
 sh_offset	readelf/kerelf.h	/^        Elf32_Off  sh_offset;               \/* Section offset *\/$/;"	m	struct:__anon2
 sh_size	readelf/kerelf.h	/^        Elf32_Word sh_size;                 \/* Section size *\/$/;"	m	struct:__anon2
 sh_type	readelf/kerelf.h	/^        Elf32_Word sh_type;                 \/* Section type *\/$/;"	m	struct:__anon2
+size	include/pmap.h	/^	int size;$/;"	m	struct:Buddy
 size_t	include/types.h	/^typedef u_int32_t        size_t;$/;"	t
 sp	include/asm-mips3k/regdef.h	45;"	d
 sp	include/asm/regdef.h	45;"	d
