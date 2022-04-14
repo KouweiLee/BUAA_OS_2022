@@ -22,6 +22,9 @@ struct Buddy {
 	int paddr;
 	int size;
 	int flag;
+	u_short bef[100];
+	u_short left;
+	int pbef;
 };
 struct Page {
 	Page_LIST_entry_t pp_link;	/* free list link */
