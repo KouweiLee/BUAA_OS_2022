@@ -215,7 +215,7 @@ void buddy_init(void){
 		tmp->pbef = 0;
 		tmp->bef[tmp->pbef++] = 1;
 		tmp->pp_ref = 0;
-		LIST_INSERT_HEAD(&buddy_free_list, tmp, pp_link);
+		LIST_INSERT_TAIL(&buddy_free_list, tmp, pp_link);
 		pot++;
 		tmp = buddys + pot;
 	}
