@@ -203,7 +203,7 @@ void page_init(void)
 int pot = 0;
 void buddy_init(void){
 	int pa0 = m32MB;
-	buddys = (struct Buddy *) alloc((m32MB/BY2PG * sizeof(struct Buddy )), BY2PG, 1);
+	buddys = (struct Buddy *) alloc(((m32MB/BY2PG*10) * sizeof(struct Buddy )), BY2PG, 1);
 	struct Buddy * tmp = buddys;
 	int i = 0;
 	LIST_INIT(&buddy_free_list);
@@ -237,12 +237,12 @@ int buddy_alloc(u_int size, u_int *pa, u_char *pi){
 		tmp->size = tmp->size / 2;
 		tmp->flag ++ ;
 		tmp->bef[tmp->pbef++] = tmp->left;
-		tmp->left = 1;
 		tmp2->size = tmp->size;
 		tmp2->flag = tmp->flag;
 		tmp2->pbef = tmp->pbef;
 		tmp2->bef[tmp->pbef-1] = tmp->left;
-		tmp2->left=0;
+		tmp->left = 1;
+		tmp2->left = 0;
 		tmp2->paddr = tmp->paddr + tmp->size;
 		tmp2->pp_ref = 0;
 		LIST_INSERT_AFTER(tmp, tmp2, pp_link);
@@ -271,6 +271,9 @@ void buddy_free(u_int pa){
 	int out = 0;
 	while(1){
 		tmp->pp_ref = 0;
+		if(tmp->size == m4MB){
+			break;
+		}
 		if(tmp->left == 1){
 		struct Buddy* next = LIST_NEXT(tmp, pp_link);
 		if(next != NULL && next->flag == tmp->flag){//back
@@ -283,7 +286,7 @@ void buddy_free(u_int pa){
 				out = 1;
 			}
 		}
-		} else {// front 
+		} else{// front 
 			LIST_FOREACH(tmp2, &buddy_free_list, pp_link){
 				if(LIST_NEXT(tmp2, pp_link) == tmp && LIST_NEXT(tmp2, pp_link)->pp_ref == 0){
 					tmp2->size = tmp2->size * 2;
