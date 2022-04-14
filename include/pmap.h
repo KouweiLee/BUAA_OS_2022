@@ -21,7 +21,6 @@ struct Buddy {
 	u_short pp_ref;
 	int paddr;
 	int size;
-	int flag;
 	u_short bef[100];
 	u_short left;
 	int pbef;

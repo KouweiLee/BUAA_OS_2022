@@ -203,7 +203,7 @@ void page_init(void)
 int pot = 0;
 void buddy_init(void){
 	int pa0 = m32MB;
-	buddys = (struct Buddy *) alloc(((m32MB/BY2PG*10) * sizeof(struct Buddy )), BY2PG, 1);
+	buddys = (struct Buddy *) alloc(((m32MB/BY2PG) * sizeof(struct Buddy )), BY2PG, 1);
 	struct Buddy * tmp = buddys;
 	int i = 0;
 	LIST_INIT(&buddy_free_list);
