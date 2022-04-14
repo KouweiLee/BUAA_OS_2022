@@ -17,7 +17,7 @@ struct Page {
 	// to this page.  This only holds for pages allocated using
 	// page_alloc.  Pages allocated at boot time using pmap.c's "alloc"
 	// do not have valid reference count fields.
-
+	u_short pro;
 	u_short pp_ref;
 };
 
@@ -84,6 +84,9 @@ va2pa(Pde *pgdir, u_long va)
 void mips_detect_memory();
 
 void mips_vm_init();
+
+int page_protect(struct Page *pp);
+int page_status_query(struct Page *pp);
 
 void mips_init();
 void page_init(void);

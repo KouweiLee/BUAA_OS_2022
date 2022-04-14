@@ -174,6 +174,35 @@ void mips_vm_init()
   are reference counted, and free pages are kept on a linked list.
 Hint:
 Use `LIST_INSERT_HEAD` to insert something to list.*/
+int page_protect(struct Page *pp){
+	if(pp->pro == 1){
+		return -2;
+	}
+	struct Page *tmp;
+	LIST_FOREACH(tmp, &page_free_list, pp_link)
+	{
+		if(tmp == pp){
+			tmp->pro = 1;
+			return 0;
+		}
+	}
+	return -1;
+}
+
+int page_status_query(struct Page * pp){
+	if(pp->pro == 1){
+		return 3;
+	}
+	struct Page *tmp;
+	LIST_FOREACH(tmp, &page_free_list, pp_link)
+	{
+		if(tmp == pp){
+			return 2;
+		}
+	}
+	return 1;
+}
+
 void page_init(void)
 {
 	/* Step 1: Initialize page_free_list. */
@@ -189,10 +218,12 @@ void page_init(void)
 	struct Page *temp = pages;
 	while(page2kva(temp)<freemem){
 		temp -> pp_ref =1;
+		temp -> pro = 0;
 		temp ++;//now pages is only an array, not the list
 	}
 	while(page2ppn(temp) < npage){
 		temp -> pp_ref = 0;
+		temp -> pro = 0;
 		LIST_INSERT_HEAD(&page_free_list,temp ,pp_link);
 		temp ++;
 	}
@@ -219,9 +250,12 @@ int page_alloc(struct Page **pp)
 	struct Page *tmp;
 	if (LIST_EMPTY(&page_free_list)) return -E_NO_MEM;
 	// negative return value indicates exception.
-
-	tmp = LIST_FIRST(&page_free_list);
-
+	
+	LIST_FOREACH(tmp, &page_free_list, pp_link){
+		if(tmp->pro == 0){
+			break;
+		}
+	}
 	/* III. remove this page from the list */;
 	LIST_REMOVE(tmp, pp_link);
 	bzero(page2kva(tmp), BY2PG);
