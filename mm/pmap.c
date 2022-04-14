@@ -273,7 +273,7 @@ void buddy_free(u_int pa){
 		}
 		if(tmp->left == 1){
 		struct Buddy* next = LIST_NEXT(tmp, pp_link);
-		if(next != NULL ){//back
+		if(next != NULL && next->left == 0){//back
 			if(next->pp_ref == 0){
 				tmp->size = tmp->size *2;
 				tmp->left = tmp->bef[--tmp->pbef];	 
@@ -284,7 +284,7 @@ void buddy_free(u_int pa){
 		}
 		} else{// front 
 			LIST_FOREACH(tmp2, &buddy_free_list, pp_link){
-				if(LIST_NEXT(tmp2, pp_link) == tmp && LIST_NEXT(tmp2, pp_link)->pp_ref == 0){
+				if(LIST_NEXT(tmp2, pp_link) == tmp && tmp2->left == 1 && tmp2->pp_ref == 0){
 					tmp2->size = tmp2->size * 2;
 					tmp2->left = tmp2->bef[--tmp->pbef];
 					LIST_REMOVE(tmp, pp_link);
