@@ -123,7 +123,7 @@ void boot_map_segment(Pde *pgdir, u_long va, u_long size, u_long pa, int perm)
             1 /* create if entry of page directory not exists yet */
         );
         /* Step 2. fill in the page table */
-        *pgtable_entry = ((pa+i))
+        *pgtable_entry = (PTE_ADDR(pa+i))
                         | perm | PTE_V;
     }
 }
