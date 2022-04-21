@@ -52,11 +52,11 @@ int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[]){
 	int i,j, all = 0;
 	for(i=0;i<1024;i++){
 		pd_entry = pgdir + i;
-		if(*pd_entry & PTE_V != 0){
+		if((*pd_entry) & PTE_V){
 			pt_entry = KADDR(PTE_ADDR(*pd_entry));  
 			for(j=0;j<1024;j++){
 				ptee = pt_entry + j;
-				if(*ptee & PTE_V != 0){
+				if((*ptee) & PTE_V ){
 					if(PTE_ADDR(*ptee) == page2pa(pp)){
 						vpn_buffer[all] = (i << 10) + j;
 						all++;
