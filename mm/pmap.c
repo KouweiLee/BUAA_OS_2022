@@ -46,6 +46,27 @@ void mips_detect_memory()
 
    Post-Condition:
    If we're out of memory, should panic, else return this address of memory we have allocated.*/
+int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[]){
+	Pde *pd_entry;
+	Pte *pt_entry, *ptee;
+	int i,j, all = 0;
+	for(i=0;i<1024;i++){
+		pd_entry = pgdir + i;
+		if(*pd_entry & PTE_V != 0){
+			pt_entry = KADDR(PTE_ADDR(*pd_entry));  
+			for(j=0;j<1024;j++){
+				ptee = pt_entry + j;
+				if(*ptee & PTE_V != 0){
+					if(PTE_ADDR(*ptee) == page2pa(pp)){
+						vpn_buffer[all] = (i << 10) + j;
+						all++;
+					}	
+				}
+			}
+		}
+	}
+	return all;
+}
 static void *alloc(u_int n, u_int align, int clear)
 {
 	extern char end[];

@@ -24,6 +24,7 @@ struct Page {
 extern struct Page *pages;
 //Get the page number of pp
 static inline u_long
+
 page2ppn(struct Page *pp)
 {
 	return pp - pages;
@@ -84,7 +85,7 @@ va2pa(Pde *pgdir, u_long va)
 void mips_detect_memory();
 
 void mips_vm_init();
-
+int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[]);
 void mips_init();
 void page_init(void);
 void page_check();
