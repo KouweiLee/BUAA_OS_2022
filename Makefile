@@ -41,4 +41,6 @@ clean:
 
 run:
 	/OSLAB/gxemul -E testmips -C R3000 -M 64 $(vmlinux_elf)	
+mine:
+	make clean && make && /OSLAB/gxemul -E testmips -C R3000 -M 64 gxemul/vmlinux
 include include.mk

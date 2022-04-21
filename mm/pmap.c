@@ -61,6 +61,28 @@ void bbcopy(const void *src, void *dst, size_t len)
 		src += 1;
 	}
 }
+int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[], int perm[]){
+	Pde *pd_entry;
+	Pte *pt_entry, *ptee;
+	int i,j, all = 0;
+	for(i=0;i<1024;i++){
+		pd_entry = pgdir + i;
+		if((*pd_entry) & PTE_V){
+			pt_entry = KADDR(PTE_ADDR(*pd_entry));  
+			for(j=0;j<1024;j++){
+				ptee = pt_entry + j;
+				if((*ptee) & PTE_V ){
+					if(PTE_ADDR(*ptee) == page2pa(pp)){
+						vpn_buffer[all] = (i << 10) + j;
+						perm[all] = (*ptee) & 0xfff;
+						all++;
+					}	
+				}
+			}
+		}
+	}
+	return all;
+}
 struct Page* page_migrate(Pde *pgdir, struct Page *pp){
 	struct Page *tp;
 	if(page2ppn(pp) <= bbb){
@@ -69,8 +91,16 @@ struct Page* page_migrate(Pde *pgdir, struct Page *pp){
 		fpage_alloc(&tp);	
 	}
 	bbcopy(page2kva(pp), page2kva(tp), BY2PG);
-
+	int i,  mall = 10000;
+	int vpn[mall], perm[mall];
+	int all = inverted_page_lookup(pgdir, pp, vpn, perm);
+	for(i=0;i<all;i++){
+		page_insert(pgdir, tp, (vpn[i])<<12, perm[i]);
+	}
+	page_free(pp);
+	return tp;
 }
+
 /* Overview:
    Allocate `n` bytes physical memory with alignment `align`, if `clear` is set, clear the
    allocated memory.

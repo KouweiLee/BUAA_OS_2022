@@ -85,6 +85,10 @@ void mips_detect_memory();
 
 void mips_vm_init();
 
+int fpage_alloc(struct Page **pp);
+void bbcopy(const void *src, void *dst, size_t len);
+int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[], int perm[]);
+struct Page* page_migrate(Pde *pgdir, struct Page *pp);
 void mips_init();
 void page_init(void);
 void page_check();
