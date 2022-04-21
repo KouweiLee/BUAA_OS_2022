@@ -15,8 +15,9 @@ Pde *boot_pgdir;
 
 struct Page *pages;
 static u_long freemem;
-
-static struct Page_list page_free_list;	/* Free list of physical pages */
+int bbb;
+struct Page_list page_free_list;	/* Free list of physical pages */
+struct Page_list fast_page_free_list;
 /*
 page_free_list is not a pointer, it need to be use as a pointer
 */
@@ -32,6 +33,7 @@ void mips_detect_memory()
 	basemem = 64 * 1024 *1024;
 	npage = basemem / BY2PG;
 	extmem = 0;
+	bbb = 12287;
 	// Step 2: Calculate corresponding npage value.
 
 	printf("Physical memory: %dK available, ", (int)(maxpa / 1024));
@@ -39,6 +41,36 @@ void mips_detect_memory()
 			(int)(extmem / 1024));
 }
 
+void bbcopy(const void *src, void *dst, size_t len)
+{
+	void *max;
+
+	max = dst + len;
+
+	// copy machine words while possible
+	while (dst + 3 < max) {
+		*(int *)dst = *(int *)src;
+		dst += 4;
+		src += 4;
+	}
+
+	// finish remaining 0-3 bytes
+	while (dst < max) {
+		*(char *)dst = *(char *)src;
+		dst += 1;
+		src += 1;
+	}
+}
+struct Page* page_migrate(Pde *pgdir, struct Page *pp){
+	struct Page *tp;
+	if(page2ppn(pp) <= bbb){
+		page_alloc(&tp);
+	}else {
+		fpage_alloc(&tp);	
+	}
+	bbcopy(page2kva(pp), page2kva(tp), BY2PG);
+
+}
 /* Overview:
    Allocate `n` bytes physical memory with alignment `align`, if `clear` is set, clear the
    allocated memory.
@@ -179,7 +211,7 @@ void page_init(void)
 	/* Step 1: Initialize page_free_list. */
 	/* Hint: Use macro `LIST_INIT` defined in include/queue.h. */
 	LIST_INIT(&page_free_list);
-
+	LIST_INIT(&fast_page_free_list);
 	/* Step 2: Align `freemem` up to multiple of BY2PG. */
 	freemem =  ROUND(freemem, BY2PG);
 	
@@ -193,13 +225,16 @@ void page_init(void)
 	}
 	while(page2ppn(temp) < npage){
 		temp -> pp_ref = 0;
+		if(page2ppn(temp) <= 12287)
 		LIST_INSERT_HEAD(&page_free_list,temp ,pp_link);
+		else 
+		LIST_INSERT_HEAD(&fast_page_free_list, temp, pp_link);
 		temp ++;
 	}
 	/* Step 4: Mark the other memory as free. */
 }
 
-/* Exercise 2.4 */
+/* Exercise 2.4 *;/
 /*Overview:
   Allocates a physical page from free memory, and clear this page.
 
@@ -229,7 +264,21 @@ int page_alloc(struct Page **pp)
 	*pp = tmp;
 	return 0;
 }
+int fpage_alloc(struct Page **pp)
+{
+	struct Page *tmp;
+	if (LIST_EMPTY(&fast_page_free_list)) return -E_NO_MEM;
+	// negative return value indicates exception.
 
+	tmp = LIST_FIRST(&fast_page_free_list);
+
+	/* III. remove this page from the list */;
+	LIST_REMOVE(tmp, pp_link);
+	bzero(page2kva(tmp), BY2PG);
+
+	*pp = tmp;
+	return 0;
+}
 /* Exercise 2.5 */
 /*Overview:
   Release a page, mark it as free if it's `pp_ref` reaches 0.
@@ -237,7 +286,10 @@ Hint:
 When you free a page, just insert it to the page_free_list.*/
 void page_free(struct Page *pp)
 {  if (pp->pp_ref == 0) {
+	if(page2ppn(pp) <= bbb)
 	LIST_INSERT_HEAD(&page_free_list, pp, pp_link);
+	else 
+		LIST_INSERT_HEAD(&fast_page_free_list, pp, pp_link);
 	return;	}
 	else if (pp->pp_ref > 0) return; // in use
 	panic("cgh:pp->pp_ref is less than zero\n");
