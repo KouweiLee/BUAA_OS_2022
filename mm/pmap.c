@@ -86,9 +86,9 @@ int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[], int perm
 struct Page* page_migrate(Pde *pgdir, struct Page *pp){
 	struct Page *tp;
 	if(page2ppn(pp) <= bbb){
-		page_alloc(&tp);
+		fpage_alloc(&tp);
 	}else {
-		fpage_alloc(&tp);	
+		page_alloc(&tp);	
 	}
 	bbcopy(page2kva(pp), page2kva(tp), BY2PG);
 	int i,  mall = 10000;
@@ -96,7 +96,9 @@ struct Page* page_migrate(Pde *pgdir, struct Page *pp){
 	int all = inverted_page_lookup(pgdir, pp, vpn, perm);
 	for(i=0;i<all;i++){
 		page_insert(pgdir, tp, (vpn[i])<<12, perm[i]);
+		//page_decref(pp);
 	}
+	if(all == 0)
 	page_free(pp);
 	return tp;
 }
