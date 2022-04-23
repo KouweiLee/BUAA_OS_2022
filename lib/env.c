@@ -110,7 +110,7 @@ int envid2env(u_int envid, struct Env **penv, int checkperm)
      *  If not, error! */
     /*  Step 2: Make a check according to checkperm. */
 	if(checkperm){
-		if(!(e == curenv || e->env_parent_id == curenv->envid)){
+		if(!(e == curenv || e->env_parent_id == curenv->env_id)){
 			*penv = 0;
 			return -E_BAD_ENV;
 		}
@@ -137,7 +137,8 @@ env_init(void)
     int i;
     /* Step 1: Initialize env_free_list. */
 	LIST_INIT(&env_free_list);
-
+	LIST_INIT(&env_sched_list[0]);
+	LIST_INIT(&env_sched_list[1]);
     /* Step 2: Traverse the elements of 'envs' array,
      *   set their status as free and insert them into the env_free_list.
      * Choose the correct loop order to finish the insertion.
@@ -146,6 +147,7 @@ env_init(void)
 	struct Env *temp;
 	for(i=NENV-1;i>=0;i--){
 		temp = envs + i;
+		temp->env_status = ENV_FREE;
 		LIST_INSERT_HEAD(&env_free_list, temp, env_link);
 	}	
 
@@ -276,8 +278,8 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
 {
 	struct Env *env = (struct Env *)user_data;
 	struct Page *p = NULL;
-	u_long i;
-	int r;
+	u_long i = 0; // i is offset from va
+	int r, size;
 	u_long offset = va - ROUNDDOWN(va, BY2PG);
 
 	//split into 3 segments,va~BY2PG, BY2PG~BY2PG, BY2PG~bin_size
@@ -335,7 +337,7 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
 		if((r = page_insert(env->env_pgdir, p, va+i, PTE_R)) < 0){
 			return r;
 		}
-		size = MIN(BY2PG, sg_size - i);
+		size = MIN(BY2PG, sgsize - i);
 		bzero(page2kva(p), size);
 		i+=BY2PG;
 	} 
@@ -507,9 +509,9 @@ env_run(struct Env *e)
      *   you should switch the context and save the registers. 
      *   You can imitate env_destroy() 's behaviors.*/
 	if(curenv){
-		struct TrapFrame *old;
-		old = (struct TrapFrame *)(TIMESTACK - sizeof(struct TrapFrame));
-		bcopy(old, &(curenv->env_tf), sizeof(struct TrapFrame));
+		struct Trapframe *old;
+		old = (struct Trapframe *)(TIMESTACK - sizeof(struct Trapframe));
+		bcopy(old, &(curenv->env_tf), sizeof(struct Trapframe));
 		curenv->env_tf.pc = curenv->env_tf.cp0_epc;
 	}
 
