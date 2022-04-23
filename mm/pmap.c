@@ -160,7 +160,7 @@ void mips_vm_init()
 
 	/* Step 3, Allocate proper size of physical memory for global array `envs`,
 	 * for process management. Then map the physical address to `UENVS`. */
-	envs = (struct Env *)alloc(NENV * sizeof(struct Env), BY2PG, 1);
+	envs = (struct Env *)alloc(NENV * sizeof(struct Env), BY2PG, 1);// NENV = 1024
 	n = ROUND(NENV * sizeof(struct Env), BY2PG);
 	boot_map_segment(pgdir, UENVS, n, PADDR(envs), PTE_R);
 
@@ -192,6 +192,11 @@ void page_init(void)
 		temp ++;//now pages is only an array, not the list
 	}
 	while(page2ppn(temp) < npage){
+		if(page2kva(temp) == TIMESTACK - BY2PG){
+			temp -> pp_ref =1;
+			temp ++;
+			continue;
+		}
 		temp -> pp_ref = 0;
 		LIST_INSERT_HEAD(&page_free_list,temp ,pp_link);
 		temp ++;

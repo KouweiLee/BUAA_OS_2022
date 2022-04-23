@@ -5,17 +5,15 @@
 			.data
 			.global	KERNEL_SP;
 KERNEL_SP:
-			.word		0
-
-
-
+		.word		0
 		.text
-		.set noreorder
+		.set noreorder //assembler won't reorder the code
 	//	.set noat
+
 LEAF(env_pop_tf)
-.set	mips1
+.set	mips1   //states using R3000
 		//1:	j	1b
-	nop
+		nop
 		move		k0,a0
 		mtc0	a1,CP0_ENTRYHI
 

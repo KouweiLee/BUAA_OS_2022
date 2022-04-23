@@ -37,5 +37,6 @@ clean:
 			$(MAKE) --directory=$$d clean; \
 		done; \
 	rm -rf *.o *~ $(vmlinux_elf)
+run:
 
 include include.mk
