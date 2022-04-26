@@ -14,21 +14,22 @@ LEAF(env_pop_tf)
 .set	mips1   //states using R3000
 		//1:	j	1b
 		nop
-		move		k0,a0
-		mtc0	a1,CP0_ENTRYHI
+		move		k0,a0 // k0 is address of env_tf
+		mtc0	a1,CP0_ENTRYHI // a1 is asid 
 
 
 		mfc0	t0,CP0_STATUS
-		ori	t0,0x3
+		ori	    t0,0x3 
 		xori	t0,0x3
-		mtc0	t0,CP0_STATUS
+		mtc0	t0,CP0_STATUS // set lower 2 bits to 0,
+							  // ignore the interrupt and restore to user mode 
 
-		lw	v1,TF_LO(k0)
+		lw	v1,TF_LO(k0) //TF maps with env_tf, v1 = lo
 		mtlo	v1
 		lw	v0,TF_HI(k0)
 		lw	v1,TF_EPC(k0)
 		mthi	v0
-		mtc0	v1,CP0_EPC
+		mtc0	v1,CP0_EPC // #define CP0_EPC $14
 		lw	$31,TF_REG31(k0)
 		lw	$30,TF_REG30(k0)
 		lw	$29,TF_REG29(k0)
@@ -67,7 +68,7 @@ LEAF(env_pop_tf)
 
 
 
-		j	k1
+		j	k1 // k1 = env_tf.pc
 		rfe
 		nop
 

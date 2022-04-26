@@ -11,7 +11,7 @@
 
 .endm
 
-
+//set lower 1 bit to 0, CU0 to 1
 .macro CLI
 	mfc0	t0, CP0_STATUS
 	li	t1, (STATUS_CU0 | 0x1)
@@ -24,8 +24,8 @@
 
 		mfc0	k0,CP0_STATUS
 		sll		k0,3      /* extract cu0 bit */
-		bltz	k0,1f
-		nop
+		bltz	k0,1f //if CU0 is 0, branch to 1f
+		nop           // attention, here is redundant
 		/*
 		 * Called from user mode, new stack
 		 */
@@ -38,7 +38,7 @@
 		move	k1,sp
 		subu	sp,k1,TF_SIZE
 		sw	k0,TF_REG29(sp)
-		sw	$2,TF_REG2(sp)
+		sw	$2,TF_REG2(sp)//v0
 		mfc0	v0,CP0_STATUS
 		sw	v0,TF_STATUS(sp)
 		mfc0	v0,CP0_CAUSE
