@@ -66,8 +66,10 @@ void bzero(void *b, size_t len)
 
 	while (b + 3 < max)
 	{
+//		printf("1");
 		*(int *)b = 0;
 		b+=4;
+//		printf("2");
 	}
 
 	// finish remaining 0-3 bytes
