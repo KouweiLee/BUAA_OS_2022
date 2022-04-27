@@ -273,6 +273,7 @@ env_alloc(struct Env **new, u_int parent_id)
  *   return 0 on success, otherwise < 0.
  */
 /*** exercise 3.6 ***/
+/*
 static int load_icode_mapper(u_long va, u_int32_t sgsize,
 		u_char *bin, u_int32_t bin_size, void *user_data)
 {
@@ -283,7 +284,7 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
 	u_long offset = va - ROUNDDOWN(va, BY2PG);
 
 	//split into 3 segments,va~BY2PG, BY2PG~BY2PG, BY2PG~bin_size
-	/* Step 1: load all content of bin into memory. */
+	// Step 1: load all content of bin into memory. 
 	if(offset){
 		p = page_lookup(env->env_pgdir, va+i, NULL);
 		if(p == 0){//page mapped to va isn't exist
@@ -311,8 +312,8 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
 		i+=BY2PG;
 	}
 	
-	/* Step 2: alloc pages to reach `sgsize` when `bin_size` < `sgsize`.
-	 * hint: variable `i` has the value of `bin_size` now! */
+	// Step 2: alloc pages to reach `sgsize` when `bin_size` < `sgsize`.
+	// hint: variable `i` has the value of `bin_size` now! 
 	i = bin_size;
 	offset = va+i - ROUNDDOWN(va+i, BY2PG);
 	if(offset){
@@ -343,6 +344,78 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
 		i+=BY2PG;
 	} 
 	return 0;
+}
+*/
+static int load_icode_mapper(u_long va, u_int32_t sgsize,
+                             u_char *bin, u_int32_t bin_size, void *user_data)
+{
+    struct Env *env = (struct Env *)user_data;
+    struct Page *p = NULL;
+    u_long i = 0;//当前已处理的空间大小
+    int r;
+    u_long offset = va - ROUNDDOWN(va, BY2PG);
+   	long size = 0;
+    
+    if (bin == NULL) return -1;
+    
+    u_long perm = PTE_R;
+    
+ 	if (offset) {
+        size = MIN(bin_size, (BY2PG - offset));//本次要处理的空间大小
+        p = page_lookup(env->env_pgdir, va + i, NULL);
+        if (p == 0) {
+            if (r = page_alloc(&p)) {
+           		return r;
+       	 	}
+            page_insert(env->env_pgdir, p, va + i, perm);
+        }
+        bcopy((void *)bin, (void *)(page2kva(p) + offset), size);
+        i += size;
+    }
+    
+    for ( ; i < bin_size; i += size) {
+        /* Hint: You should alloc a page.*/
+        size = MIN(bin_size - i, BY2PG);
+        p = page_lookup(env->env_pgdir, va + i, NULL);
+        if (p == 0) {
+            if (r = page_alloc(&p)) {
+           		return r;
+       	 	}
+            page_insert(env->env_pgdir, p, va + i, perm);
+        }
+        bcopy((void *)(bin + i), (void *)(page2kva(p)), size);
+    }
+    
+    offset = i - ROUNDDOWN(i, BY2PG);
+    if (offset) {
+        size = MIN(BY2PG - offset, sgsize - i);
+        p = page_lookup(env->env_pgdir, va + i, NULL);//理论上返回值一定非零
+        if (p == 0) {
+            if (r = page_alloc(&p)) {
+           		return r;
+       	 	}
+            page_insert(env->env_pgdir, p, va + i, perm);
+            //真要是0，则前半段的原本复制上去的内容可能由于page_alloc而清零，故必须重新复制
+            bcopy((void *)(bin + i - offset), (void *)(page2kva(p)), offset);
+        }
+        bzero((void *)(page2kva(p) + offset), size);
+     	i += size;   
+    }
+    
+    while (i < sgsize) {
+        size = MIN(BY2PG, sgsize - i);
+        p = page_lookup(env->env_pgdir, va + i, NULL);
+        if (p == 0) {
+            if (r = page_alloc(&p)) {
+           		return r;
+       	 	}
+            page_insert(env->env_pgdir, p, va + i, perm);
+        }
+        bzero((void *)page2kva(p), size);
+        i += size;
+    }
+    
+    return 0;
 }
 /* Overview:
  *  Sets up the the initial stack and program binary for a user process.
