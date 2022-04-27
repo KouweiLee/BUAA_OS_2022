@@ -93,11 +93,12 @@ int envid2env(u_int envid, struct Env **penv, int checkperm)
     /* Hint: If envid is zero, return curenv.*/
     /* Step 1: Assign value to e using envid. */
 	if(envid == 0){
-		e = curenv;
-	}else {
-		e = envs + ENVX(envid);
+		*penv = curenv;
+		return 0;
 	}
 
+	e = envs + ENVX(envid);
+	
     if (e->env_status == ENV_FREE || e->env_id != envid) {
         *penv = 0;
         return -E_BAD_ENV;
@@ -273,7 +274,7 @@ env_alloc(struct Env **new, u_int parent_id)
  *   return 0 on success, otherwise < 0.
  */
 /*** exercise 3.6 ***/
-/*
+
 static int load_icode_mapper(u_long va, u_int32_t sgsize,
 		u_char *bin, u_int32_t bin_size, void *user_data)
 {
@@ -345,78 +346,7 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
 	} 
 	return 0;
 }
-*/
-static int load_icode_mapper(u_long va, u_int32_t sgsize,
-                             u_char *bin, u_int32_t bin_size, void *user_data)
-{
-    struct Env *env = (struct Env *)user_data;
-    struct Page *p = NULL;
-    u_long i = 0;//当前已处理的空间大小
-    int r;
-    u_long offset = va - ROUNDDOWN(va, BY2PG);
-   	long size = 0;
-    
-    if (bin == NULL) return -1;
-    
-    u_long perm = PTE_R;
-    
- 	if (offset) {
-        size = MIN(bin_size, (BY2PG - offset));//本次要处理的空间大小
-        p = page_lookup(env->env_pgdir, va + i, NULL);
-        if (p == 0) {
-            if (r = page_alloc(&p)) {
-           		return r;
-       	 	}
-            page_insert(env->env_pgdir, p, va + i, perm);
-        }
-        bcopy((void *)bin, (void *)(page2kva(p) + offset), size);
-        i += size;
-    }
-    
-    for ( ; i < bin_size; i += size) {
-        /* Hint: You should alloc a page.*/
-        size = MIN(bin_size - i, BY2PG);
-        p = page_lookup(env->env_pgdir, va + i, NULL);
-        if (p == 0) {
-            if (r = page_alloc(&p)) {
-           		return r;
-       	 	}
-            page_insert(env->env_pgdir, p, va + i, perm);
-        }
-        bcopy((void *)(bin + i), (void *)(page2kva(p)), size);
-    }
-    
-    offset = i - ROUNDDOWN(i, BY2PG);
-    if (offset) {
-        size = MIN(BY2PG - offset, sgsize - i);
-        p = page_lookup(env->env_pgdir, va + i, NULL);//理论上返回值一定非零
-        if (p == 0) {
-            if (r = page_alloc(&p)) {
-           		return r;
-       	 	}
-            page_insert(env->env_pgdir, p, va + i, perm);
-            //真要是0，则前半段的原本复制上去的内容可能由于page_alloc而清零，故必须重新复制
-            bcopy((void *)(bin + i - offset), (void *)(page2kva(p)), offset);
-        }
-        bzero((void *)(page2kva(p) + offset), size);
-     	i += size;   
-    }
-    
-    while (i < sgsize) {
-        size = MIN(BY2PG, sgsize - i);
-        p = page_lookup(env->env_pgdir, va + i, NULL);
-        if (p == 0) {
-            if (r = page_alloc(&p)) {
-           		return r;
-       	 	}
-            page_insert(env->env_pgdir, p, va + i, perm);
-        }
-        bzero((void *)page2kva(p), size);
-        i += size;
-    }
-    
-    return 0;
-}
+
 /* Overview:
  *  Sets up the the initial stack and program binary for a user process.
  *  This function loads the complete binary image by using elf loader,
