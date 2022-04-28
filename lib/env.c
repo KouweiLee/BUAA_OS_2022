@@ -14,13 +14,76 @@ struct Env *curenv = NULL;            // the current env
 
 static struct Env_list env_free_list;    // Free list
 struct Env_list env_sched_list[2];      // Runnable list
- 
+struct Env_list waitlist;
+
 extern Pde *boot_pgdir;
 extern char *KERNEL_SP;
 
 static u_int asid_bitmap[2] = {0}; // 64
+int ss[3];
 
+void S_init(int s, int num){
+	ss[s] = num;
+}
 
+int P(struct Env *e, int s){
+	if(e->wait == 1) {
+		return -1;
+	}
+	if(ss[s]>0){
+		ss[s]--;
+		e->have[s]++;
+	}
+	else if(ss[s]==0){
+		e->wait = 1;
+		LIST_INSERT_TAIL(&waitlist, e, env_link);
+	}
+	return 0;
+}
+
+int V(struct Env *e, int s){
+	if(e->wait == 1){
+		return -1;
+	}
+	if(e->have[s]>0){
+		e->have[s]--;
+	}
+	if(LIST_EMPTY(&waitlist)){
+		ss[s]++;
+	}else {
+		struct Env *now = LIST_FIRST(&waitlist);
+		LIST_REMOVE(now, env_link);
+		now->wait = 0;
+		now->have[s]++;
+	}
+	return 0;
+}
+
+int get_status(struct Env *e){
+	if(e->wait==1){
+		//printf("%d, %d\n", e->wait[1], e->wait[2]);
+		return 1;
+	}
+	if(e->have[1]>0 || e->have[2]>0){
+		return 2;
+	}
+	return 3;
+}
+
+int my_env_create(){
+	struct Env *e;
+	if(LIST_EMPTY(&env_free_list)){
+		return -1;
+	}
+	e= LIST_FIRST(&env_free_list);
+	LIST_REMOVE(e, env_link);
+	e->env_id = mkenvid(e);
+	e->env_status = ENV_RUNNABLE;
+	e->wait = 0;
+	e->have[1] = 0;
+	e->have[2] = 0;
+	return e->env_id;
+}
 /* Overview:
  *  This function is to allocate an unused ASID
  *
@@ -66,7 +129,7 @@ static void asid_free(u_int i) {
  * Post-Condition:
  *  return e's envid on success
  */
-u_int mkenvid(struct Env *e) {
+int mkenvid(struct Env *e) {
     u_int idx = e - envs;
     u_int asid = asid_alloc();
     return (asid << (1 + LOG2NENV)) | (1 << LOG2NENV) | idx;
@@ -138,6 +201,7 @@ env_init(void)
     int i;
     /* Step 1: Initialize env_free_list. */
 	LIST_INIT(&env_free_list);
+	LIST_INIT(&waitlist);
 	LIST_INIT(&env_sched_list[0]);
 	LIST_INIT(&env_sched_list[1]);
     /* Step 2: Traverse the elements of 'envs' array,

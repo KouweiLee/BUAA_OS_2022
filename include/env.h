@@ -42,6 +42,8 @@ struct Env {
 	// Lab 6 scheduler counts
 	u_int env_runs;			// number of times been env_run'ed
 	u_int env_nop;                  // align to avoid mul instruction
+	int wait;
+	int have[3];
 };
 
 LIST_HEAD(Env_list, Env);
@@ -49,6 +51,11 @@ extern struct Env *envs;		// All environments
 extern struct Env *curenv;	        // the current env
 extern struct Env_list env_sched_list[2]; // runnable env list
 
+void S_init(int s, int num);
+int P(struct Env *e, int s);
+int V(struct Env *e, int s);
+int get_status(struct Env *e);
+int my_env_create();
 void env_init(void);
 int env_alloc(struct Env **e, u_int parent_id);
 void env_free(struct Env *);
