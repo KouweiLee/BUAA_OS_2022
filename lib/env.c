@@ -44,6 +44,7 @@ u_int exam_env_run(struct Env *e){
 }
 
 void exam_env_free(struct Env *e){
+	int asd;
 	int id = e->env_asid;
 	if((id>>6) == banben){
 		asid_free(id&0x3f);
