@@ -24,6 +24,7 @@ struct Env {
 	u_int env_id;                   // Unique environment identifier
 	u_int env_parent_id;            // env_id of this env's parent
 	u_int env_status;               // Status of the environment
+	u_int env_asid;
 	Pde  *env_pgdir;                // Kernel virtual address of page dir
 	u_int env_cr3;
 	LIST_ENTRY(Env) env_sched_link;
@@ -49,6 +50,8 @@ extern struct Env *envs;		// All environments
 extern struct Env *curenv;	        // the current env
 extern struct Env_list env_sched_list[2]; // runnable env list
 
+void exam_env_free(struct Env *e);
+u_int exam_env_run(struct Env *e);
 void env_init(void);
 int env_alloc(struct Env **e, u_int parent_id);
 void env_free(struct Env *);
