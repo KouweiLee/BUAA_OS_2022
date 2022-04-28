@@ -37,7 +37,7 @@ u_int exam_env_run(struct Env *e){
 	int r = asid_alloc();
 	if(r == 100) {
 		e->env_asid = (banben << 6) | asid_alloc();
-		return -1;
+		return 1;
 	}
 	e->env_asid = (banben << 6) | r;
 	return 0;
