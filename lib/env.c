@@ -14,7 +14,7 @@ struct Env *curenv = NULL;            // the current env
 
 static struct Env_list env_free_list;    // Free list
 struct Env_list env_sched_list[2];      // Runnable list
-struct Env_list waitlist;
+struct Env_list waitlist[3];
 
 extern Pde *boot_pgdir;
 extern char *KERNEL_SP;
@@ -36,7 +36,7 @@ int P(struct Env *e, int s){
 	}
 	else if(ss[s]==0){
 		e->wait = 1;
-		LIST_INSERT_TAIL(&waitlist, e, env_link);
+		LIST_INSERT_TAIL(&waitlist[s], e, env_link);
 	}
 	return 0;
 }
@@ -48,10 +48,10 @@ int V(struct Env *e, int s){
 	if(e->have[s]>0){
 		e->have[s]--;
 	}
-	if(LIST_EMPTY(&waitlist)){
+	if(LIST_EMPTY(&waitlist[s])){
 		ss[s]++;
 	}else {
-		struct Env *now = LIST_FIRST(&waitlist);
+		struct Env *now = LIST_FIRST(&waitlist[s]);
 		LIST_REMOVE(now, env_link);
 		now->wait = 0;
 		now->have[s]++;
@@ -201,7 +201,8 @@ env_init(void)
     int i;
     /* Step 1: Initialize env_free_list. */
 	LIST_INIT(&env_free_list);
-	LIST_INIT(&waitlist);
+	LIST_INIT(&waitlist[1]);
+	LIST_INIT(&waitlist[2]);
 	LIST_INIT(&env_sched_list[0]);
 	LIST_INIT(&env_sched_list[1]);
     /* Step 2: Traverse the elements of 'envs' array,
