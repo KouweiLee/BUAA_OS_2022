@@ -34,7 +34,7 @@ void sched_yield(void)
 		if(e != NULL){//count == 0 || status is not runnable
 			LIST_REMOVE(e, env_sched_link);
 			if(e->env_status != ENV_FREE){
-				LIST_INSERT_TAIL(&env_sched_list[1-point], curenv, env_sched_link);
+				LIST_INSERT_TAIL(&env_sched_list[1-point], e, env_sched_link);
 			}
 		}
 		while(1){
