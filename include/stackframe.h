@@ -151,17 +151,17 @@
 .endm
 
 
-.macro get_sp
+.macro get_sp	   //macro
 	mfc0	k1, CP0_CAUSE
 	andi	k1, 0x107C
 	xori	k1, 0x1000
-	bnez	k1, 1f
+	bnez	k1, 1f //if is time_interrupt, k1 should be 0.
 	nop
-	li	sp, 0x82000000
+	li	sp, 0x82000000 // sp = TIMESTACK
 	j	2f
 	nop
 1:
-	bltz	sp, 2f
+	bltz	sp, 2f //
 	nop
 	lw	sp, KERNEL_SP
 	nop
