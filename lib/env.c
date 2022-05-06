@@ -327,7 +327,7 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
 		}
 		//size = BY2PG-offset; ATTENTION HERE
 		size = MIN(BY2PG - offset, sgsize - i);
-		bzero(page2kva(p)+offset, size);
+		//bzero(page2kva(p)+offset, size);
 		i+=size;
 	}    
 
@@ -339,7 +339,7 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
 			return r;
 		}
 		size = MIN(BY2PG, sgsize - i);
-		bzero(page2kva(p), size);
+		//bzero(page2kva(p), size);
 		i+=BY2PG;
 	} 
 	return 0;
