@@ -92,7 +92,7 @@
 		mfc0	t0,CP0_STATUS
 		ori	t0,0x3
 		xori	t0,0x3
-		mtc0	t0,CP0_STATUS
+		mtc0	t0,CP0_STATUS//set lower 2 bits to 0
 		lw	v0,TF_STATUS(sp)
 		li	v1, 0xff00 
 		and	t0, v1 

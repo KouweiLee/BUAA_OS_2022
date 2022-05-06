@@ -117,7 +117,7 @@ duppage(u_int envid, u_int pn)
 {
 	u_int addr;
 	u_int perm;
-
+	//sys_mem_map(0, curenv->env_id, addr, envid, addr, perm);
 	//	user_panic("duppage not implemented");
 }
 

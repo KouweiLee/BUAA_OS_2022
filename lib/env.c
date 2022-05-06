@@ -194,9 +194,7 @@ env_setup_vm(struct Env *e)
      *  Can you use boot_pgdir as a template?
      */
 	for(i=PDX(UTOP); i<PTE2PT ; i++){
-		if(i != PDX(UVPT)){
 			pgdir[i] = boot_pgdir[i];
-		}	
 	}
 	
 	e->env_pgdir = pgdir;
