@@ -14,13 +14,13 @@ void mips_init() {
 
 	env_init();
 	ENV_CREATE(user_tltest);
-	// ENV_CREATE(user_fktest);
-	// ENV_CREATE(user_pingpong);
+	ENV_CREATE(user_fktest);
+	//ENV_CREATE(user_pingpong);
 
-	printf("123\n");
+	//printf("123\n");
 	trap_init();
 	kclock_init();
-	printf("123");
+	//printf("123");
 
 	while(1);
 	panic("init.c:\tend of mips_init() reached!");

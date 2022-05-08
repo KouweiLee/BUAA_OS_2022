@@ -82,17 +82,21 @@ void user_bzero(void *v, u_int n)
 static void
 pgfault(u_int va)
 {
-	u_int *tmp;
+	u_int *tmp = USTACKTOP;
 	//	writef("fork.c:pgfault():\t va:%x\n",va);
-
+	u_int perm = ((Pte *)(*vpt))[VPN(va)] & 0xfff;
+	if((perm & PTE_COW) == 0){
+		user_panic("pgfault in fork.c");;
+	}
+	perm -= PTE_COW;
 	//map the new page at a temporary place
-
+	syscall_mem_alloc(0, tmp, perm);
 	//copy the content
-
+	user_bcopy(ROUNDDOWN(va, BY2PG), tmp, BY2PG);
 	//map the page on the appropriate place
-
+	syscall_mem_map(0, tmp, 0, va, perm);
 	//unmap the temporary place
-
+	syscall_mem_unmap(0, tmp);
 }
 
 /* Overview:
@@ -118,7 +122,7 @@ duppage(u_int envid, u_int pn)
 	u_int addr;
 	u_int perm;
 	addr = pn << PGSHIFT;
-	perm = *(((Pte*)vpt) + (va >> 12)) & 0xfff;
+	perm = ((Pte *)(*vpt))[pn] & 0xfff;
 // what about PTE_LIBRARY WITHOUT PTE_R?	
 	if((perm & PTE_R) && !(perm & PTE_LIBRARY)){
 		perm = perm | PTE_COW;
@@ -147,23 +151,27 @@ fork(void)
 	extern struct Env *envs;
 	extern struct Env *env;
 	u_int i;
+	
+	//The parent installs pgfault using set_pgfault_handler
+	set_pgfault_handler(pgfault);
+	
 	newenvid = syscall_env_alloc();//son returns 0
 	if(newenvid == 0){
 		newenvid = syscall_getenvid();
 		env = &envs[ENVX(newenvid)];
 		return 0;
 	}
-	
+//father excute this 	
 	for(i=0;i<VPN(USTACKTOP);i++){
 		if(((*vpd)[i>>10] & PTE_V) && ((*vpt)[i] & PTE_V)){
 			duppage(newenvid, i); // i is virtual page number, newenvid is the id of son 
 		}
 	}
-	//The parent installs pgfault using set_pgfault_handler
 
 	//alloc a new alloc
-
-
+	syscall_mem_alloc(newenvid, UXSTACKTOP - BY2PG, PTE_V | PTE_R);
+	syscall_set_pgfault_handler(newenvid, __asm_pgfault_handler, UXSTACKTOP);
+	syscall_set_env_status(newenvid, ENV_RUNNABLE);
 	return newenvid;
 }
 
