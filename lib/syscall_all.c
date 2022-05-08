@@ -249,8 +249,9 @@ int sys_env_alloc(void)
 	struct Env *e;
 	r = env_alloc(&e, curenv->env_id);
     if(r < 0) return r;
-    struct Trapframe *old = (struct Trapframe *)(KERNEL_SP - sizeof(struct Trapframe));
-    bcopy((void *)(old), &(e->env_tf), sizeof(struct Trapframe));
+    bcopy((void *)KERNEL_SP - sizeof(struct Trapframe), 
+		  (void *)(&(e->env_tf)), 
+		  sizeof(struct Trapframe));
 
     e->env_tf.pc = e->env_tf.cp0_epc;
     e->env_status = ENV_NOT_RUNNABLE;
