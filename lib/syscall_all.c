@@ -280,7 +280,7 @@ int sys_set_env_status(int sysno, u_int envid, u_int status)
 	// Your code here.
 	struct Env *env;
 	int ret;
-	if(status != ENV_FREE || status != ENV_RUNNABLE || status != ENV_NOT_RUNNABLE)
+	if(status != ENV_FREE && status != ENV_RUNNABLE && status != ENV_NOT_RUNNABLE)
 		return -E_INVAL;
 	ret = envid2env(envid, &env, 0);
 	if(ret < 0) return ret;
