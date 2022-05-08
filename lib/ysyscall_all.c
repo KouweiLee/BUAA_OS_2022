@@ -10,22 +10,22 @@ extern struct Env *curenv;
 
 /* Overview:
  * 	This function is used to print a character on screen.
- *
+ * 
  * Pre-Condition:
  * 	`c` is the character you want to print.
  */
 void sys_putchar(int sysno, int c, int a2, int a3, int a4, int a5)
 {
-	printcharc((char) c);
-	return ;
+	printcharc((char)c);
+	return;
 }
 
 /* Overview:
  * 	This function enables you to copy content of `srcaddr` to `destaddr`.
  *
  * Pre-Condition:
- * 	`destaddr` and `srcaddr` can't be NULL. Also, the `srcaddr` area
- * 	shouldn't overlap the `destaddr`, otherwise the behavior of this
+ * 	`destaddr` and `srcaddr` can't be NULL. Also, the `srcaddr` area 
+ * 	shouldn't overlap the `destaddr`, otherwise the behavior of this 
  * 	function is undefined.
  *
  * Post-Condition:
@@ -37,7 +37,8 @@ void *memcpy(void *destaddr, void const *srcaddr, u_int len)
 	char *dest = destaddr;
 	char const *src = srcaddr;
 
-	while (len-- > 0) {
+	while (len-- > 0)
+	{
 		*dest++ = *src++;
 	}
 
@@ -59,10 +60,7 @@ u_int sys_getenvid(void)
  *	This function enables the current process to give up CPU.
  *
  * Post-Condition:
- * 	Deschedule current process. This function will never return.
- *
- * Note:
- *  For convenience, you can just give up the current time slice.
+ * 	Deschedule current environment. This function will never return.
  */
 /*** exercise 4.6 ***/
 void sys_yield(void)
@@ -77,8 +75,8 @@ void sys_yield(void)
  * 	This function is used to destroy the current environment.
  *
  * Pre-Condition:
- * 	The parameter `envid` must be the environment id of a
- * process, which is either a child of the caller of this function
+ * 	The parameter `envid` must be the environment id of a 
+ * process, which is either a child of the caller of this function 
  * or the caller itself.
  *
  * Post-Condition:
@@ -93,18 +91,19 @@ int sys_env_destroy(int sysno, u_int envid)
 	int r;
 	struct Env *e;
 
-	if ((r = envid2env(envid, &e, 1)) < 0) {
+	if ((r = envid2env(envid, &e, 1)) < 0)
+	{
 		return r;
 	}
 
-	printf("[%08x] destroying %08x\n", curenv->env_id, e->env_id);
+	// printf("[%08x] destroying %08x\n", curenv->env_id, e->env_id);
 	env_destroy(e);
 	return 0;
 }
 
 /* Overview:
  * 	Set envid's pagefault handler entry point and exception stack.
- *
+ * 
  * Pre-Condition:
  * 	xstacktop points one byte past exception stack.
  *
@@ -119,8 +118,9 @@ int sys_set_pgfault_handler(int sysno, u_int envid, u_int func, u_int xstacktop)
 	// Your code here.
 	struct Env *env;
 	int ret;
-    ret = envid2env(envid, &env, 0);//why???
-	if(ret < 0) return ret;
+	ret = envid2env(envid, &env, 0);
+	if (ret)
+		return ret;
 	env->env_pgfault_handler = func;
 	env->env_xstacktop = xstacktop;
 	return 0;
@@ -133,7 +133,7 @@ int sys_set_pgfault_handler(int sysno, u_int envid, u_int func, u_int xstacktop)
  *
  * 	If a page is already mapped at 'va', that page is unmapped as a
  * side-effect.
- *
+ * 
  * Pre-Condition:
  * perm -- PTE_V is required,
  *         PTE_COW is not allowed(return -E_INVAL),
@@ -150,26 +150,29 @@ int sys_mem_alloc(int sysno, u_int envid, u_int va, u_int perm)
 	// Your code here.
 	struct Env *env;
 	struct Page *ppage;
-	int ret;
-	ret = 0;
-	if(va >= UTOP) return -E_INVAL;
-	if((perm & PTE_V) == 0) return -E_INVAL;
-	if((perm & PTE_COW) != 0) return -E_INVAL;
-	
-	ret = page_alloc(&ppage);
-	if(ret < 0) return ret;
+	int ret = 0;
+	if ((perm & PTE_V) == 0)
+		return -E_INVAL;
+	if (va >= UTOP)
+		return -E_INVAL;
+	if (perm & PTE_COW)
+		return -E_INVAL;
 	ret = envid2env(envid, &env, 1);
-	if(ret < 0) return ret;
+	if (ret < 0)
+		return ret;
+	ret = page_alloc(&ppage);
+	if (ret < 0)
+		return ret;
 	ret = page_insert(env->env_pgdir, ppage, va, perm);
-	if(ret < 0) return ret;
+	if (ret < 0)
+		return ret;
 	return 0;
-
 }
 
 /* Overview:
  * 	Map the page of memory at 'srcva' in srcid's address space
  * at 'dstva' in dstid's address space with permission 'perm'.
- * Perm must have PTE_V to be valid.
+ * Perm has the same restrictions as in sys_mem_alloc.
  * (Probably we should add a restriction that you can't go from
  * non-writable to writable?)
  *
@@ -180,8 +183,7 @@ int sys_mem_alloc(int sysno, u_int envid, u_int va, u_int perm)
  * 	Cannot access pages above UTOP.
  */
 /*** exercise 4.4 ***/
-int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva,
-				u_int perm)
+int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva, u_int perm)
 {
 	int ret;
 	u_int round_srcva, round_dstva;
@@ -194,14 +196,19 @@ int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva,
 	ret = 0;
 	round_srcva = ROUNDDOWN(srcva, BY2PG);
 	round_dstva = ROUNDDOWN(dstva, BY2PG);
-	if(srcva >= UTOP || dstva >= UTOP) return -E_INVAL;
-	if(perm & PTE_V == 0) return -E_INVAL;
-	ret = envid2env(srcid, &srcenv, 0);
-	if(ret < 0) return ret;
-	ret = envid2env(dstid, &dstenv, 0);
-	if(ret < 0) return ret;
-	ppage = page_lookup(srcenv->env_pgdir, round_srcva, NULL);
-	if(ppage == 0) return -E_INVAL;
+
+	//your code here
+	if ((perm & PTE_V) == 0)
+		return -E_INVAL;
+	if (srcva >= UTOP || dstva >= UTOP)
+		return -E_INVAL;
+	if ((ret = envid2env(srcid, &srcenv, 0)) < 0)
+		return ret;
+	if ((ret = envid2env(dstid, &dstenv, 0)) < 0)
+		return ret;
+	ppage = page_lookup(srcenv->env_pgdir, round_srcva, &ppte);
+	if (ppage == NULL)
+		return -E_INVAL;
 	ret = page_insert(dstenv->env_pgdir, ppage, round_dstva, perm);
 	return ret;
 }
@@ -221,9 +228,12 @@ int sys_mem_unmap(int sysno, u_int envid, u_int va)
 	// Your code here.
 	int ret;
 	struct Env *env;
-	if(va >= UTOP) return -E_INVAL;
+
+	if (va >= UTOP)
+		return -E_INVAL;
 	ret = envid2env(envid, &env, 0);
-	if(ret < 0) return ret;
+	if (ret < 0)
+		return ret;
 	page_remove(env->env_pgdir, va);
 	return ret;
 	//	panic("sys_mem_unmap not implemented");
@@ -248,15 +258,15 @@ int sys_env_alloc(void)
 	int r;
 	struct Env *e;
 	r = env_alloc(&e, curenv->env_id);
-    if(r < 0) return r;
-    bcopy((void *)KERNEL_SP - sizeof(struct Trapframe), 
-		  (void *)(&(e->env_tf)), 
-		  sizeof(struct Trapframe));
+	if (r < 0)
+		return r;
+	e->env_status = ENV_NOT_RUNNABLE;
+	e->env_pri = curenv->env_pri;
+	bcopy((void *)KERNEL_SP - sizeof(struct Trapframe),
+		  (void *)(&(e->env_tf)), sizeof(struct Trapframe));
+	e->env_tf.pc = e->env_tf.cp0_epc;
 
-    e->env_tf.pc = e->env_tf.cp0_epc;
-    e->env_status = ENV_NOT_RUNNABLE;
-    e->env_tf.regs[2] = 0; 
-    e->env_pri = curenv->env_pri;
+	e->env_tf.regs[2] = 0; // $v0 <- return value
 
 	return e->env_id;
 	//	panic("sys_env_alloc not implemented");
@@ -268,7 +278,7 @@ int sys_env_alloc(void)
  * Pre-Condition:
  * 	status should be one of `ENV_RUNNABLE`, `ENV_NOT_RUNNABLE` and
  * `ENV_FREE`. Otherwise return -E_INVAL.
- *
+ * 
  * Post-Condition:
  * 	Returns 0 on success, < 0 on error.
  * 	Return -E_INVAL if status is not a valid status for an environment.
@@ -280,11 +290,16 @@ int sys_set_env_status(int sysno, u_int envid, u_int status)
 	// Your code here.
 	struct Env *env;
 	int ret;
-	if(status != ENV_FREE || status != ENV_RUNNABLE || status != ENV_NOT_RUNNABLE)
+
+	if (status != ENV_RUNNABLE && status != ENV_NOT_RUNNABLE && status != ENV_FREE)
+	{
 		return -E_INVAL;
+	}
 	ret = envid2env(envid, &env, 0);
-	if(ret < 0) return ret;
-	if(status == ENV_RUNNABLE && env->env_status != ENV_RUNNABLE){
+	if (ret)
+		return ret;
+	if (status == ENV_RUNNABLE && env->env_status != ENV_RUNNABLE)
+	{
 		LIST_INSERT_TAIL(&env_sched_list[0], env, env_sched_link);
 	}
 	env->env_status = status;
@@ -311,7 +326,7 @@ int sys_set_trapframe(int sysno, u_int envid, struct Trapframe *tf)
 }
 
 /* Overview:
- * 	Kernel panic with message `msg`.
+ * 	Kernel panic with message `msg`. 
  *
  * Pre-Condition:
  * 	msg can't be NULL
@@ -326,22 +341,23 @@ void sys_panic(int sysno, char *msg)
 }
 
 /* Overview:
- * 	This function enables caller to receive message from
- * other process. To be more specific, it will flag
- * the current process so that other process could send
+ * 	This function enables caller to receive message from 
+ * other process. To be more specific, it will flag 
+ * the current process so that other process could send 
  * message to it.
  *
  * Pre-Condition:
  * 	`dstva` is valid (Note: NULL is also a valid value for `dstva`).
- *
+ * 
  * Post-Condition:
- * 	This syscall will set the current process's status to
- * ENV_NOT_RUNNABLE, giving up cpu.
+ * 	This syscall will set the current process's status to 
+ * ENV_NOT_RUNNABLE, giving up cpu. 
  */
 /*** exercise 4.7 ***/
 void sys_ipc_recv(int sysno, u_int dstva)
 {
-	if(dstva >= UTOP) return ;
+	if (dstva >= UTOP)
+		return;
 	curenv->env_ipc_recving = 1;
 	curenv->env_ipc_dstva = dstva;
 	curenv->env_status = ENV_NOT_RUNNABLE;
@@ -373,22 +389,27 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 	int r;
 	struct Env *e;
 	struct Page *p;
-	if(srcva >= UTOP) return -E_INVAL;
-	r = envid2env(envid, &e, 0);
-	if(r<0) return r;
-	if(e->env_ipc_recving == 0) return -E_IPC_NOT_RECV;
 
-	e->env_ipc_recving = 0;
-	e->env_ipc_from = curenv->env_id;
+	if (srcva >= UTOP)
+		return -E_INVAL;
+	r = envid2env(envid, &e, 0);
+	if (r < 0)
+		return r;
+	if (e->env_ipc_recving == 0)
+		return -E_IPC_NOT_RECV;
 	e->env_ipc_value = value;
+	e->env_ipc_from = curenv->env_id;
 	e->env_ipc_perm = perm;
+	e->env_ipc_recving = 0;
 	e->env_status = ENV_RUNNABLE;
-	if(srcva != 0){
+	if (srcva != 0)
+	{
 		p = page_lookup(curenv->env_pgdir, srcva, NULL);
-		if(p == 0) return -E_INVAL;
+		if (p == NULL || e->env_ipc_dstva >= UTOP)
+			return -E_INVAL;
 		r = page_insert(e->env_pgdir, p, e->env_ipc_dstva, perm);
-		if(r < 0) return r;
+		if (r)
+			return r;
 	}
 	return 0;
 }
-
