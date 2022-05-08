@@ -117,7 +117,14 @@ duppage(u_int envid, u_int pn)
 {
 	u_int addr;
 	u_int perm;
-	//sys_mem_map(0, curenv->env_id, addr, envid, addr, perm);
+	addr = pn << PGSHIFT;
+	perm = *(((Pte*)vpt) + (va >> 12)) & 0xfff;
+// what about PTE_LIBRARY WITHOUT PTE_R?	
+	if((perm & PTE_R) && !(perm & PTE_LIBRARY)){
+		perm = perm | PTE_COW;
+		syscall_mem_map(0, addr, 0, addr, perm);
+	}
+	syscall_mem_map(0, addr, envid, addr, perm);
 	//	user_panic("duppage not implemented");
 }
 
@@ -140,8 +147,18 @@ fork(void)
 	extern struct Env *envs;
 	extern struct Env *env;
 	u_int i;
-
-
+	newenvid = syscall_env_alloc();//son returns 0
+	if(newenvid == 0){
+		newenvid = syscall_getenvid();
+		env = &envs[ENVX(newenvid)];
+		return 0;
+	}
+	
+	for(i=0;i<VPN(USTACKTOP);i++){
+		if(((*vpd)[i>>10] & PTE_V) && ((*vpt)[i] & PTE_V)){
+			duppage(newenvid, i); // i is virtual page number, newenvid is the id of son 
+		}
+	}
 	//The parent installs pgfault using set_pgfault_handler
 
 	//alloc a new alloc

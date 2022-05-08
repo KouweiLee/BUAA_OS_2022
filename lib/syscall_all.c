@@ -194,9 +194,9 @@ int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva,
 	round_dstva = ROUNDDOWN(dstva, BY2PG);
 	if(srcva >= UTOP || dstva >= UTOP) return -E_INVAL;
 	if(perm & PTE_V == 0) return -E_INVAL;
-	ret = envid2env(srcid, &srcenv, 1);
+	ret = envid2env(srcid, &srcenv, 0);
 	if(ret < 0) return ret;
-	ret = envid2env(dstid, &dstenv, 1);
+	ret = envid2env(dstid, &dstenv, 0);
 	if(ret < 0) return ret;
 	ppage = page_lookup(srcenv->env_pgdir, round_srcva, NULL);
 	if(ppage == 0) return -E_INVAL;
@@ -220,7 +220,7 @@ int sys_mem_unmap(int sysno, u_int envid, u_int va)
 	int ret;
 	struct Env *env;
 	if(va >= UTOP) return -E_INVAL;
-	ret = envid2env(envid, &env, 1);
+	ret = envid2env(envid, &env, 0);
 	if(ret < 0) return ret;
 	page_remove(env->env_pgdir, va);
 	return ret;
@@ -245,8 +245,15 @@ int sys_env_alloc(void)
 	// Your code here.
 	int r;
 	struct Env *e;
-
-
+	r = env_alloc(&e, curenv->env_id);
+	if(r < 0) return r;
+	struct TrapFrame *old = (struct TrapFrame *)(KERNEL_SP - sizeof(struct TrapFrame));
+	bcopy((void *)(old), &(e->env_tf), sizeof(struct TrapFrame));
+	
+	e->env_tf.pc = e->env_tf.cp0_epc;
+	e->env_status = ENV_NOT_RUNNABLE;
+	e->env_tf.regs[2] = 0; //$v0 <= return value
+	e->env_pri = curenv->env_pri;
 	return e->env_id;
 	//	panic("sys_env_alloc not implemented");
 }
