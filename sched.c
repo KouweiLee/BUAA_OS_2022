@@ -19,7 +19,9 @@ struct Mist{
 void SJF ( int number_of_jobs, const int job_submitted_time [],
            const int job_required_time [], int job_sched_start [] ){
 	int i, time;
-	struct Mist* head = NULL, *tmp,*p;
+	struct Mist *head = NULL;
+	struct Mist *tmp;
+	struct Mist *p;
 	head = malloc(sizeof(struct Mist));
 	head->id = 0;
 	head->time = job_required_time[0];
@@ -29,22 +31,32 @@ void SJF ( int number_of_jobs, const int job_submitted_time [],
 		p =(struct Mist*)malloc(sizeof(struct Mist));
 		p->id = i;
 		p->time = time;
+//		printf("yes\n");
 		for(tmp = head; tmp->next != NULL && time >= tmp->next->time; tmp = tmp->next);
+//		printf("if4\n");
 		if(tmp == head){
 			if(time >= head->time){
 				head->next = p;
 				p->next = NULL;
+//				printf("if1\n");
 				continue;
 			}
 			p->next = head;
 			head = p;
+//			printf("if2\n");
 		} else{
 			p->next = tmp->next;
 			tmp->next = p;
-			printf("he\n");
+//			printf("if3\n");
+//			printf("%d\n", i);
 		}
 	}
-	p = head;
+//	struct Mist *pp = head;
+	//printf("hello");
+	/*while(p!=NULL){
+		printf("%d ", p->time);
+		p= p->next;
+	}*/
 	job_sched_start[p->id] = job_submitted_time[0];
 	for(i=0;i<number_of_jobs - 1 ;i++){
 		time = job_sched_start[p->id] + job_required_time[p->id];
