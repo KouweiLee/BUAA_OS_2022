@@ -65,9 +65,11 @@ void sched_yield(void)
 				LIST_REMOVE(e, env_sched_link);
 			} else if(e->env_status == ENV_NOT_RUNNABLE){
 				LIST_REMOVE(e, env_sched_link);// not exist
-				LIST_INSERT_TAIL(&env_sched_list[0], e, env_sched_link);
+				//LIST_INSERT_TAIL(&env_sched_list[0], e, env_sched_link);
 			} else {
-				count = e->env_pri * (u_int)(1 << point);
+				if(point == 0) count = e->env_pri;
+				else if(point == 1) count = e->env_pri * 2;
+				else count = e->env_pri * 3;
 				break;
 			}
 		}
