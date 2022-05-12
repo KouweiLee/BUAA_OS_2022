@@ -71,12 +71,12 @@ nop
 SAVE_ALL
 CLI
 .set at
-mfc0 k0, CP0_EPC 
+lw k0, TF_EPC(sp)
 lw a0, 0(k0)
 jal handle_adel_help
 nop
 
-mfc0 k0, CP0_EPC
+lw k0, TF_EPC(sp)
 sw v0, 0(k0)
 nop
 
