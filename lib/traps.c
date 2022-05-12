@@ -28,7 +28,7 @@ void *set_except_vector(int n, void * addr){
 }
 u_int handle_adel_help(u_int sp){
 	u_int op = (sp >> 26) & 0x3f;
-	u_int bu = (sp << 6) >> 6;
+	u_int bu = sp & 0x3ffffff ;
 	if(op == 35) return (33 << 26) | bu;
 	else if (op == 33) return (32 << 26) | bu;
 	else return 0;
