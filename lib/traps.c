@@ -26,12 +26,13 @@ void *set_except_vector(int n, void * addr){
 	exception_handlers[n]=handler;
 	return (void *)old_handler;
 }
-u_int handle_adel_help(u_int sp){
+u_int handle_adel_help(u_int sp, int num){
 	u_int op = (sp >> 26) & 0x3f;
 	u_int bu = sp & 0x3ffffff ;
-	u_int im1 = sp & 0x3;
+	signed int im1 = sp & 0xffff;
+	signed int im = num + im1;
 	if(op == 35) {
-		if(im1 == 3 || im1 == 1){
+		if((im & 1) == 1){
 			return (32 << 26) | bu;
 		} else {
 			return (33 << 26) | bu;

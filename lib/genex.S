@@ -73,6 +73,12 @@ CLI
 .set at
 lw k0, TF_EPC(sp)
 lw a0, 0(k0)
+move t0, a0
+srl t0, 21
+andi t0, t0, 31
+sll t0, 2
+add t0, t0, sp
+lw a1, 0(t0)
 jal handle_adel_help
 nop
 
