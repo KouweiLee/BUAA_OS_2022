@@ -29,7 +29,7 @@ void *set_except_vector(int n, void * addr){
 u_int handle_adel_help(u_int sp, int num){
 	u_int op = (sp >> 26) & 0x3f;
 	u_int bu = sp & 0x3ffffff ;
-	signed int im1 = sp & 0xffff;
+	signed int im1 = (signed int)sp & 0xffff;
 	signed int im = num + im1;
 	if(op == 35) {
 		if((im & 1) == 1){
