@@ -63,6 +63,27 @@ bnez	t1, timer_irq
 nop
 END(handle_int)
 
+.set noreorder
+.align 5
+NESTED(handle_adel, TF_SIZE, sp)
+.set noat
+nop
+SAVE_ALL
+CLI
+.set at
+mfc0 k0, CP0_EPC 
+lw a0, 0(k0)
+jal handle_adel_help
+nop
+
+mfc0 k0, CP0_EPC
+sw v0, 0(k0)
+nop
+
+j ret_from_exception
+nop
+END(handle_adel)
+
 	.extern delay
 
 timer_irq:

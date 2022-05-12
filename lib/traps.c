@@ -7,6 +7,7 @@ extern void handle_reserved();
 extern void handle_tlb();
 extern void handle_sys();
 extern void handle_mod();
+extern void handle_adel();
 unsigned long exception_handlers[32];
 void trap_init(){
 	int i;
@@ -17,6 +18,7 @@ void trap_init(){
 	set_except_vector(2, handle_tlb);
 	set_except_vector(3, handle_tlb);
 	set_except_vector(8, handle_sys);
+	set_except_vector(4, handle_adel);
 }
 void *set_except_vector(int n, void * addr){
 	unsigned long handler=(unsigned long)addr;
@@ -24,7 +26,12 @@ void *set_except_vector(int n, void * addr){
 	exception_handlers[n]=handler;
 	return (void *)old_handler;
 }
-
+u_int handle_adel_help(u_int sp){
+	u_int op = (sp >> 26) & 0x3f;
+	u_int bu = (sp << 6) >> 6;
+	if(op == 35) return (33 << 26) | bu;
+	else return (32 << 26) | bu;
+}
 
 struct pgfault_trap_frame{
         u_int fault_va;
