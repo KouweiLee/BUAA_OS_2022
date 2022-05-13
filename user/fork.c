@@ -84,7 +84,7 @@ pgfault(u_int va)
 {
 	u_int *tmp = USTACKTOP;
 	//	writef("fork.c:pgfault():\t va:%x\n",va);
-	u_int perm = ((Pte *)(*vpt))[VPN(va)] & 0xfff;
+	u_int perm = (*vpt)[VPN(va)] & 0xfff;
 	if((perm & PTE_COW) == 0){
 		user_panic("pgfault in fork.c");
 	}
