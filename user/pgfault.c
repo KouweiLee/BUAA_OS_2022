@@ -18,8 +18,9 @@ extern void __asm_pgfault_handler(void);
 void
 set_pgfault_handler(void (*fn)(u_int va))
 {
+
+//	writef("\npgfault is %x\n",__pgfault_handler ); //needmove
 	if (__pgfault_handler == 0) {
-		// Your code here:
 		// map one page of exception stack with top at UXSTACKTOP
 		// register assembly handler and stack with operating system
 		if (syscall_mem_alloc(0, UXSTACKTOP - BY2PG, PTE_V | PTE_R) < 0 ||
