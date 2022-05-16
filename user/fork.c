@@ -128,17 +128,16 @@ duppage(u_int envid, u_int pn)
 	if((perm & PTE_R) && !(perm & PTE_LIBRARY)){
 		perm = perm | PTE_COW;
 		//flag = 1;
-	//	if(addr != USTACKTOP - BY2PG){
+		if(addr != USTACKTOP - BY2PG){
 			syscall_mem_map(0, addr, 0, addr, perm);
 			syscall_mem_map(0, addr, envid, addr, perm);
-	/*	}
+		}
 		else {
 			syscall_mem_map(0, addr, envid, addr, perm);
 			syscall_mem_map(0, addr, 0, addr, perm);
 		}
-	*/	
-	} else{
 		
+	} else {	
 			syscall_mem_map(0, addr, envid, addr, perm);
 	}
 	/*syscall_mem_map(0, addr, envid, addr, perm);
