@@ -122,19 +122,26 @@ duppage(u_int envid, u_int pn)
 	u_int addr;
 	u_int perm;
 	addr = pn << PGSHIFT;
-	perm = ((Pte *)(*vpt))[pn] & 0xfff;
+	perm = (*vpt)[pn] & 0xfff;
 	int flag = 0;
 // what about PTE_LIBRARY WITHOUT PTE_R?	
 	if((perm & PTE_R) && !(perm & PTE_LIBRARY)){
 		perm = perm | PTE_COW;
-		flag = 1;
-		//syscall_mem_map(0, addr, 0, addr, perm);
+		//flag = 1;
+		if(addr != USTACKTOP - BY2PG){
+			syscall_mem_map(0, addr, 0, addr, perm);
+			syscall_mem_map(0, addr, envid, addr, perm);
+		}
+		else {
+			syscall_mem_map(0, addr, envid, addr, perm);
+			syscall_mem_map(0, addr, 0, addr, perm);
+		}
 	}
-	syscall_mem_map(0, addr, envid, addr, perm);
+	/*syscall_mem_map(0, addr, envid, addr, perm);
 	if(flag) 
 		syscall_mem_map(0, addr, 0, addr, perm);
 	//	user_panic("duppage not implemented");
-
+	*/
 }
 
 /* Overview:
