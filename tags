@@ -681,6 +681,7 @@ main	init/main.c	/^int main()$/;"	f
 main	readelf/main.c	/^int main(int argc,char *argv[])$/;"	f
 maxpa	mm/pmap.c	/^u_long maxpa;            \/* Maximum physical address + 1 *\/$/;"	v
 memcpy	lib/syscall_all.c	/^void *memcpy(void *destaddr, void const *srcaddr, u_int len)$/;"	f
+memcpy	lib/ysyscall_all.c	/^void *memcpy(void *destaddr, void const *srcaddr, u_int len)$/;"	f
 memcpy	user/string.c	/^memcpy(void *destaddr, void const *srcaddr, u_int len)$/;"	f
 mfc0	lib/genex.S	/^mfc0	t0, CP0_CAUSE$/;"	l
 mfc0	lib/genex.S	/^mfc0	t2, CP0_STATUS$/;"	l
@@ -817,19 +818,33 @@ strcpy	user/string.c	/^strcpy(char *dst, const char *src)$/;"	f
 strlen	user/string.c	/^strlen(const char *s)$/;"	f
 sys_call_table	lib/syscall.S	/^sys_call_table:                         \/\/ Syscall Table$/;"	l
 sys_env_alloc	lib/syscall_all.c	/^int sys_env_alloc(void)$/;"	f
+sys_env_alloc	lib/ysyscall_all.c	/^int sys_env_alloc(void)$/;"	f
 sys_env_destroy	lib/syscall_all.c	/^int sys_env_destroy(int sysno, u_int envid)$/;"	f
+sys_env_destroy	lib/ysyscall_all.c	/^int sys_env_destroy(int sysno, u_int envid)$/;"	f
 sys_getenvid	lib/syscall_all.c	/^u_int sys_getenvid(void)$/;"	f
+sys_getenvid	lib/ysyscall_all.c	/^u_int sys_getenvid(void)$/;"	f
 sys_ipc_can_send	lib/syscall_all.c	/^int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,$/;"	f
+sys_ipc_can_send	lib/ysyscall_all.c	/^int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,$/;"	f
 sys_ipc_recv	lib/syscall_all.c	/^void sys_ipc_recv(int sysno, u_int dstva)$/;"	f
+sys_ipc_recv	lib/ysyscall_all.c	/^void sys_ipc_recv(int sysno, u_int dstva)$/;"	f
 sys_mem_alloc	lib/syscall_all.c	/^int sys_mem_alloc(int sysno, u_int envid, u_int va, u_int perm)$/;"	f
+sys_mem_alloc	lib/ysyscall_all.c	/^int sys_mem_alloc(int sysno, u_int envid, u_int va, u_int perm)$/;"	f
 sys_mem_map	lib/syscall_all.c	/^int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva,$/;"	f
+sys_mem_map	lib/ysyscall_all.c	/^int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva, u_int perm)$/;"	f
 sys_mem_unmap	lib/syscall_all.c	/^int sys_mem_unmap(int sysno, u_int envid, u_int va)$/;"	f
+sys_mem_unmap	lib/ysyscall_all.c	/^int sys_mem_unmap(int sysno, u_int envid, u_int va)$/;"	f
 sys_panic	lib/syscall_all.c	/^void sys_panic(int sysno, char *msg)$/;"	f
+sys_panic	lib/ysyscall_all.c	/^void sys_panic(int sysno, char *msg)$/;"	f
 sys_putchar	lib/syscall_all.c	/^void sys_putchar(int sysno, int c, int a2, int a3, int a4, int a5)$/;"	f
+sys_putchar	lib/ysyscall_all.c	/^void sys_putchar(int sysno, int c, int a2, int a3, int a4, int a5)$/;"	f
 sys_set_env_status	lib/syscall_all.c	/^int sys_set_env_status(int sysno, u_int envid, u_int status)$/;"	f
+sys_set_env_status	lib/ysyscall_all.c	/^int sys_set_env_status(int sysno, u_int envid, u_int status)$/;"	f
 sys_set_pgfault_handler	lib/syscall_all.c	/^int sys_set_pgfault_handler(int sysno, u_int envid, u_int func, u_int xstacktop)$/;"	f
+sys_set_pgfault_handler	lib/ysyscall_all.c	/^int sys_set_pgfault_handler(int sysno, u_int envid, u_int func, u_int xstacktop)$/;"	f
 sys_set_trapframe	lib/syscall_all.c	/^int sys_set_trapframe(int sysno, u_int envid, struct Trapframe *tf)$/;"	f
+sys_set_trapframe	lib/ysyscall_all.c	/^int sys_set_trapframe(int sysno, u_int envid, struct Trapframe *tf)$/;"	f
 sys_yield	lib/syscall_all.c	/^void sys_yield(void)$/;"	f
+sys_yield	lib/ysyscall_all.c	/^void sys_yield(void)$/;"	f
 syscall_cgetc	user/syscall_lib.c	/^syscall_cgetc()$/;"	f
 syscall_env_alloc	user/lib.h	/^inline static int syscall_env_alloc(void)$/;"	f
 syscall_env_destroy	user/syscall_lib.c	/^syscall_env_destroy(u_int envid)$/;"	f
@@ -848,7 +863,7 @@ syscall_yield	user/syscall_lib.c	/^syscall_yield(void)$/;"	f
 t0	include/asm-mips3k/regdef.h	23;"	d
 t0	include/asm/regdef.h	23;"	d
 t0	include/stackframe.h	/^		and	t0, v1 $/;"	v
-t0	include/stackframe.h	/^		mtc0	t0,CP0_STATUS$/;"	v
+t0	include/stackframe.h	/^		mtc0	t0,CP0_STATUS\/\/set lower 2 bits to 0$/;"	v
 t0	include/stackframe.h	/^		ori	t0,0x3$/;"	v
 t0	include/stackframe.h	/^		xori	t0,0x3$/;"	v
 t0	include/stackframe.h	/^	mtc0	t0, CP0_STATUS$/;"	v

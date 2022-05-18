@@ -18,6 +18,7 @@ libmain(int argc, char **argv)
 	// set env to point at our env structure in envs[].
 	env = 0;	// Your code here.
 //	writef("libmain: xxxxxxxxx %x  %x  xxxxxxxxx\n",argc,(int)argv);
+//	Attention : writef is a user function
 	int envid;
 	envid = syscall_getenvid();
 	envid = ENVX(envid);

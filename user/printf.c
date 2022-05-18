@@ -24,7 +24,7 @@ static void user_myoutput(void *arg, const char *s, int l)
 		}
 	}
 }
-
+//user function
 void writef(char *fmt, ...)
 {
 	va_list ap;
