@@ -30,9 +30,10 @@ NESTED(handle_sys,TF_SIZE, sp)
 
     // TODO: Allocate a space of six arguments on current kernel stack and copy the six arguments to proper location
 	lw a0, TF_REG4(sp)
-	lw a1, TF_REG5(sp)
+/*	lw a1, TF_REG5(sp)
 	lw a2, TF_REG6(sp)
 	lw a3, TF_REG7(sp)
+	*/
 	addiu sp, sp, -24
 /*	sw a0, 0(sp)
 	sw a1, 4(sp)
