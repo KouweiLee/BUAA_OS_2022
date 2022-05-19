@@ -7,7 +7,8 @@
 
 extern char *KERNEL_SP;
 extern struct Env *curenv;
-
+extern struct ms mqueue[1300];
+extern int mpot;
 /* Overview:
  * 	This function is used to print a character on screen.
  *
@@ -339,7 +340,7 @@ void sys_panic(int sysno, char *msg)
  * ENV_NOT_RUNNABLE, giving up cpu.
  */
 /*** exercise 4.7 ***/
-void sys_ipc_recv(int sysno, u_int dstva)
+void sys_ipc_recv123(int sysno, u_int dstva)
 {
 	if(dstva >= UTOP) return ;
 	curenv->env_ipc_recving = 1;
@@ -366,10 +367,9 @@ void sys_ipc_recv(int sysno, u_int dstva)
  * Hint: the only function you need to call is envid2env.
  */
 /*** exercise 4.7 ***/
-int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
+int sys_ipc_can_send123(int sysno, u_int envid, u_int value, u_int srcva,
 					 u_int perm)
 {
-
 	int r;
 	struct Env *e;
 	struct Page *p;
@@ -392,3 +392,75 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 	return 0;
 }
 
+void trans(struct Env *send, struct Env *recv, u_int value, u_int srcva, u_int perm){
+    //printf("trans\n");
+	struct Page *p;
+	struct Env *e = recv;
+    e->env_ipc_recving = 0;
+    e->env_ipc_from = send->env_id;
+    e->env_ipc_value = value;
+    e->env_ipc_perm = perm;
+    e->env_status = ENV_RUNNABLE;
+    if(srcva != 0){
+        p = page_lookup(send->env_pgdir, srcva, NULL);
+        page_insert(e->env_pgdir, p, e->env_ipc_dstva, perm);
+       // if(r < 0) return r;
+    }
+}
+
+int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
+                     u_int perm)
+{
+
+    int r,i;
+    struct Env *e;
+    struct Page *p;
+    if(srcva >= UTOP) return -E_INVAL;
+    r = envid2env(envid, &e, 0);
+    if(r<0) return r;
+    if(e->env_ipc_recving == 0) {
+        curenv->env_status = ENV_NOT_RUNNABLE;
+		struct ms *nq = mqueue+mpot;
+        nq->send = curenv->env_id;
+        nq->recv = envid;
+        nq->value = value;
+		nq->srcva = srcva;
+        nq->perm = perm;
+//		printf("hello,%x,%x\n",nq->perm,perm);
+		mpot++;
+//		printf("mpot is %d\n", mpot);
+        sys_yield();
+        return 0;
+    }
+    else {
+        trans(curenv, e, value, srcva, perm);
+    }
+
+    return 0;
+}
+
+//lib/syscall_all.c
+void sys_ipc_recv(int sysno, u_int dstva)
+{ 
+//	printf("comming\n");
+	int i;
+    if(dstva >= UTOP) return ;
+    curenv->env_ipc_recving = 1;
+    curenv->env_ipc_dstva = dstva;
+    curenv->env_status = ENV_NOT_RUNNABLE;
+    struct Env *send;
+//	printf("recv\n");
+    for(i=1;i<1300;i++){
+//		printf("recv\n");
+		struct ms * nq = mqueue + i;
+        if(nq->recv == curenv->env_id){
+			//printf("recving\n");
+            nq->recv = 0;
+            envid2env(nq->send, &send, 0);
+            send->env_status = ENV_RUNNABLE;
+            trans(send, curenv, nq->value, nq->srcva, nq->perm);
+            return;
+        }
+    }
+    sys_yield();
+}

@@ -691,6 +691,9 @@ mips_vm_init	mm/pmap.c	/^void mips_vm_init()$/;"	f
 mkenvid	lib/env.c	/^u_int mkenvid(struct Env *e) {$/;"	f
 mm_dir	Makefile	/^mm_dir		  := mm$/;"	m
 modules	Makefile	/^modules		  := boot drivers init lib mm user$/;"	m
+mpot	mm/pmap.c	/^int mpot;$/;"	v
+mqueue	mm/pmap.c	/^struct ms mqueue[1300];$/;"	v	typeref:struct:ms
+ms	include/pmap.h	/^struct ms{$/;"	s
 myoutput	lib/printf.c	/^static void myoutput(void *arg, char *s, int l)$/;"	f	file:
 nop	lib/genex.S	/^nop$/;"	l
 nop	mm/tlb_asm.S	/^nop$/;"	l
@@ -734,6 +737,7 @@ pages	mm/pmap.c	/^struct Page *pages;$/;"	v	typeref:struct:Page
 pages	user/entry.S	/^pages:$/;"	l
 panic	include/printf.h	21;"	d
 pc	include/trap.h	/^	unsigned long pc;$/;"	m	struct:Trapframe
+perm	include/pmap.h	/^	u_int perm;$/;"	m	struct:ms
 pgdir_walk	mm/pmap.c	/^int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte)$/;"	f
 pgfault	user/fork.c	/^pgfault(u_int va)$/;"	f	file:
 physical_memory_manage_check	mm/pmap.c	/^void physical_memory_manage_check(void)$/;"	f
@@ -749,6 +753,7 @@ quad_t	readelf/types.h	/^typedef	int64_t		quad_t;$/;"	t
 ra	include/asm-mips3k/regdef.h	48;"	d
 ra	include/asm/regdef.h	48;"	d
 readelf	readelf/readelf.c	/^int readelf(u_char *binary, int size)$/;"	f
+recv	include/pmap.h	/^	u_int recv;$/;"	m	struct:ms
 register_t	include/types.h	/^typedef int32_t                 register_t;$/;"	t
 register_t	readelf/types.h	/^typedef int32_t                 register_t;$/;"	t
 regs	include/trap.h	/^	unsigned long regs[32];$/;"	m	struct:Trapframe
@@ -784,6 +789,7 @@ s_magic	include/fs.h	/^	u_int s_magic;		\/\/ Magic number: FS_MAGIC$/;"	m	struct
 s_nblocks	include/fs.h	/^	u_int s_nblocks;	\/\/ Total number of blocks on disk$/;"	m	struct:Super
 s_root	include/fs.h	/^	struct File s_root;	\/\/ Root directory node$/;"	m	struct:Super	typeref:struct:Super::File
 sched_yield	lib/sched.c	/^void sched_yield(void)$/;"	f
+send	include/pmap.h	/^	u_int send;$/;"	m	struct:ms
 set_except_vector	lib/traps.c	/^void *set_except_vector(int n, void *addr)$/;"	f
 set_pgfault_handler	user/pgfault.c	/^set_pgfault_handler(void (*fn)(u_int va))$/;"	f
 setup_c0_status	lib/kclock_asm.S	/^setup_c0_status STATUS_CU0|0x1001 0$/;"	l
@@ -806,6 +812,7 @@ sp	include/stackframe.h	/^		subu	sp,k1,TF_SIZE$/;"	v
 sp	include/stackframe.h	/^	bltz	sp, 2f \/\/$/;"	v
 sp	include/stackframe.h	/^	li	sp, 0x82000000 \/\/ sp = TIMESTACK$/;"	v
 sp	include/stackframe.h	/^	lw	sp, KERNEL_SP$/;"	v
+srcva	include/pmap.h	/^	u_int srcva;$/;"	m	struct:ms
 st_dev	user/fd.h	/^	struct Dev *st_dev;$/;"	m	struct:Stat	typeref:struct:Stat::Dev
 st_isdir	user/fd.h	/^	u_int st_isdir;$/;"	m	struct:Stat
 st_name	user/fd.h	/^	char st_name[MAXNAMELEN];$/;"	m	struct:Stat
@@ -825,8 +832,10 @@ sys_getenvid	lib/syscall_all.c	/^u_int sys_getenvid(void)$/;"	f
 sys_getenvid	lib/ysyscall_all.c	/^u_int sys_getenvid(void)$/;"	f
 sys_ipc_can_send	lib/syscall_all.c	/^int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,$/;"	f
 sys_ipc_can_send	lib/ysyscall_all.c	/^int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,$/;"	f
+sys_ipc_can_send123	lib/syscall_all.c	/^int sys_ipc_can_send123(int sysno, u_int envid, u_int value, u_int srcva,$/;"	f
 sys_ipc_recv	lib/syscall_all.c	/^void sys_ipc_recv(int sysno, u_int dstva)$/;"	f
 sys_ipc_recv	lib/ysyscall_all.c	/^void sys_ipc_recv(int sysno, u_int dstva)$/;"	f
+sys_ipc_recv123	lib/syscall_all.c	/^void sys_ipc_recv123(int sysno, u_int dstva)$/;"	f
 sys_mem_alloc	lib/syscall_all.c	/^int sys_mem_alloc(int sysno, u_int envid, u_int va, u_int perm)$/;"	f
 sys_mem_alloc	lib/ysyscall_all.c	/^int sys_mem_alloc(int sysno, u_int envid, u_int va, u_int perm)$/;"	f
 sys_mem_map	lib/syscall_all.c	/^int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva,$/;"	f
@@ -849,7 +858,7 @@ syscall_cgetc	user/syscall_lib.c	/^syscall_cgetc()$/;"	f
 syscall_env_alloc	user/lib.h	/^inline static int syscall_env_alloc(void)$/;"	f
 syscall_env_destroy	user/syscall_lib.c	/^syscall_env_destroy(u_int envid)$/;"	f
 syscall_getenvid	user/syscall_lib.c	/^syscall_getenvid(void)$/;"	f
-syscall_ipc_can_send	user/syscall_lib.c	/^syscall_ipc_can_send(u_int envid, u_int value, u_int srcva, u_int perm)$/;"	f
+syscall_ipc_can_send	user/syscall_lib.c	/^int syscall_ipc_can_send(u_int envid, u_int value, u_int srcva, u_int perm) {$/;"	f
 syscall_ipc_recv	user/syscall_lib.c	/^syscall_ipc_recv(u_int dstva)$/;"	f
 syscall_mem_alloc	user/syscall_lib.c	/^syscall_mem_alloc(u_int envid, u_int va, u_int perm)$/;"	f
 syscall_mem_map	user/syscall_lib.c	/^syscall_mem_map(u_int srcid, u_int srcva, u_int dstid, u_int dstva, u_int perm)$/;"	f
@@ -894,6 +903,7 @@ timer_irq	lib/genex.S	/^timer_irq:$/;"	l
 tlb_invalidate	mm/pmap.c	/^void tlb_invalidate(Pde *pgdir, u_long va)$/;"	f
 tlbra	boot/start.S	/^tlbra:$/;"	l
 tools_dir	Makefile	/^tools_dir	  := tools$/;"	m
+trans	lib/syscall_all.c	/^void trans(struct Env *send, struct Env *recv, u_int value, u_int srcva, u_int perm){$/;"	f
 trap_init	lib/traps.c	/^void trap_init()$/;"	f
 u_char	include/types.h	/^typedef	unsigned char	u_char;$/;"	t
 u_char	readelf/types.h	/^typedef	unsigned char	u_char;$/;"	t
@@ -921,6 +931,8 @@ uint64_t	include/kerelf.h	/^typedef u_int64_t		uint64_t;$/;"	t
 uint64_t	readelf/kerelf.h	/^typedef u_int64_t               uint64_t;$/;"	t
 umain	user/fktest.c	/^void umain()$/;"	f
 umain	user/idle.c	/^void umain()$/;"	f
+umain	user/ipcrecv.c	/^void umain() {$/;"	f
+umain	user/ipcsend.c	/^void umain() {$/;"	f
 umain	user/pingpong.c	/^umain(void)$/;"	f
 umain	user/tltest.c	/^void umain() {$/;"	f
 user_PrintChar	user/print.c	/^user_PrintChar(char *buf, char c, int length, int ladjust)$/;"	f
@@ -959,6 +971,7 @@ v1	include/stackframe.h	/^		lw	v1,TF_LO(sp)$/;"	v
 v1	include/stackframe.h	/^		mtc0	v1,CP0_EPC$/;"	v
 v1	include/stackframe.h	/^		nor	v1, $0, v1 $/;"	v
 va2pa	include/pmap.h	/^va2pa(Pde *pgdir, u_long va)$/;"	f
+value	include/pmap.h	/^	u_int value;$/;"	m	struct:ms
 vmlinux_elf	Makefile	/^vmlinux_elf	  := gxemul\/vmlinux$/;"	m
 vpd	user/entry.S	/^vpd:$/;"	l
 vpt	user/entry.S	/^vpt:$/;"	l

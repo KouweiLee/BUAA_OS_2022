@@ -9,6 +9,13 @@
 
 LIST_HEAD(Page_list, Page);
 typedef LIST_ENTRY(Page) Page_LIST_entry_t;
+struct ms{
+	u_int send;
+	u_int recv;
+	u_int value;
+	u_int srcva;
+	u_int perm;
+};
 
 struct Page {
 	Page_LIST_entry_t pp_link;	/* free list link */

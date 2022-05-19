@@ -4,28 +4,24 @@
 #include <printf.h>
 #include <kclock.h>
 #include <trap.h>
-
 void mips_init() {
-	printf("init.c:\tmips_init() is called\n");
-	mips_detect_memory();
+    printf("init.c:\tmips_init() is called\n");
+    mips_detect_memory();
+    mips_vm_init();
+    page_init();
+    env_init();
 
-	mips_vm_init();
-	page_init();
+    int i;
+    for (i = 0; i < 3; ++i) {
+        ENV_CREATE(user_ipcsend);
+    }
+    ENV_CREATE(user_ipcrecv);
 
-	env_init();
-//	ENV_CREATE(user_tltest);
-//	ENV_CREATE(user_fktest);
-	ENV_CREATE(user_pingpong);
-
-	//printf("123\n");
-	trap_init();
-	kclock_init();
-	//printf("123");
-
-	while(1);
-	panic("init.c:\tend of mips_init() reached!");
+    trap_init();
+    kclock_init();
+    while(1);
+    panic("init.c:\tend of mips_init() reached!");
 }
-
 void bcopy(const void *src, void *dst, size_t len) {
 	void *max = dst + len;
 

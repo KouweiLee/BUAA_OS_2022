@@ -523,7 +523,6 @@ env_run(struct Env *e)
 
     /* Step 3: Use lcontext() to switch to its address space. */
 	lcontext(e->env_pgdir);
-
     /* Step 4: Use env_pop_tf() to restore the environment's
      *   environment   registers and return to user mode.
      *

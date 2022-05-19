@@ -13,9 +13,10 @@ u_long extmem;           /* Amount of extended memory(in bytes) */
 
 Pde *boot_pgdir;
 
+int mpot;
 struct Page *pages;
 static u_long freemem;
-
+struct ms* mqueue;
 static struct Page_list page_free_list;	/* Free list of physical pages */
 /*
 page_free_list is not a pointer, it need to be use as a pointer
@@ -163,7 +164,12 @@ void mips_vm_init()
 	envs = (struct Env *)alloc(NENV * sizeof(struct Env), BY2PG, 1);// NENV = 1024
 	n = ROUND(NENV * sizeof(struct Env), BY2PG);
 	boot_map_segment(pgdir, UENVS, n, PADDR(envs), PTE_R);
-
+	int i;
+	mpot = 1;
+	mqueue = (struct ms *)alloc(1300*sizeof(struct ms),BY2PG ,1);
+	for(i=0;i<1300;i++){
+		mqueue[i].recv = 0;
+	}
 	printf("pmap.c:\t mips vm init success\n");
 }
 
