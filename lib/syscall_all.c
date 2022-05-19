@@ -398,6 +398,7 @@ void trans(struct Env *send, struct Env *recv, u_int value, u_int srcva, u_int p
 	struct Env *e = recv;
     e->env_ipc_recving = 0;
     e->env_ipc_from = send->env_id;
+	//printf("%x\n",e->env_ipc_from);
     e->env_ipc_value = value;
     e->env_ipc_perm = perm;
     e->env_status = ENV_RUNNABLE;
@@ -453,13 +454,14 @@ void sys_ipc_recv(int sysno, u_int dstva)
     for(i=1;i<1300;i++){
 //		printf("recv\n");
 		struct ms * nq = mqueue + i;
-        if(nq->recv == curenv->env_id){
+        if( nq->recv != 0 && nq->recv == curenv->env_id){
 			//printf("recving\n");
             nq->recv = 0;
             envid2env(nq->send, &send, 0);
             send->env_status = ENV_RUNNABLE;
             trans(send, curenv, nq->value, nq->srcva, nq->perm);
-            return;
+			//printf("rec is %x\n",curenv->env_ipc_recving);
+			return;
         }
     }
     sys_yield();

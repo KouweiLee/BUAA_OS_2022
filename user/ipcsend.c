@@ -10,6 +10,7 @@ void umain() {
     u_int who;
     int *buf = (int *) 0x60000000;
     ipc_recv(&who, buf, 0);
+	writef("having\n");
     writef("%x: got %d from %x\n", me, buf[0], who);
 
     while (1);
