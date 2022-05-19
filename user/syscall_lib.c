@@ -8,8 +8,13 @@ void syscall_putchar(char ch)
 {
 	msyscall(SYS_putchar, (int)ch, 0, 0, 0, 0);
 }
+int syscall_try_acquire_console(void){
+	return msyscall(SYS_try, 0, 0, 0, 0, 0);
+}
 
-
+int syscall_release_console(void){
+	return msyscall(SYS_release, 0, 0, 0, 0, 0);
+}
 u_int
 syscall_getenvid(void)
 {

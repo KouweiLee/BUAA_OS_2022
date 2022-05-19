@@ -19,7 +19,7 @@ extern Pde *boot_pgdir;
 extern char *KERNEL_SP;
 
 static u_int asid_bitmap[2] = {0}; // 64
-
+u_int lock;
 
 /* Overview:
  *  This function is to allocate an unused ASID
@@ -140,6 +140,7 @@ env_init(void)
 	LIST_INIT(&env_free_list);
 	LIST_INIT(&env_sched_list[0]);
 	LIST_INIT(&env_sched_list[1]);
+	lock = 0;
     /* Step 2: Traverse the elements of 'envs' array,
      *   set their status as free and insert them into the env_free_list.
      * Choose the correct loop order to finish the insertion.
