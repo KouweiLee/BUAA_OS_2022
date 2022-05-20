@@ -198,7 +198,9 @@ void
 free_block(u_int blockno)
 {
 	// Step 1: Check if the parameter `blockno` is valid (`blockno` can't be zero).
-
+	if(blockno == 0 || (super!=NULL && blockno >super->s_nblocks)) 
+		return;
+	bitmap[blockno / 32] |= (1 << (blockno % 32));	
 	// Step 2: Update the flag bit in bitmap.
 	// you can use bit operation to update flags, such as  a |= (1 << n) .
 
