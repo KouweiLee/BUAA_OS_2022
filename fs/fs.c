@@ -16,7 +16,9 @@ int block_is_free(u_int);
 u_int
 diskaddr(u_int blockno)
 {
-
+	if(super != NULL && blockno >= super->s_nblocks)//blockno 是从0开始还是从1开始
+		user_panic("diskaddr is wrong!");
+	return DISKMAP + blockno*BY2BLK;
 }
 
 // Overview:
@@ -68,8 +70,10 @@ int
 map_block(u_int blockno)
 {
 	// Step 1: Decide whether this block has already mapped to a page of physical memory.
-
+	if(block_is_mapped(blockno) != 0) 
+		return 0;
 	// Step 2: Alloc a page of memory for this block via syscall.
+	return syscall_mem_alloc(0, diskaddr(blockno), PTE_V | PTE_R);
 }
 
 // Overview:
@@ -81,14 +85,17 @@ unmap_block(u_int blockno)
 	int r;
 
 	// Step 1: check if this block is mapped.
-
+	u_int addr = block_is_mapped(blockno);	
+	
 	// Step 2: use block_is_free，block_is_dirty to check block,
 	// if this block is used(not free) and dirty, it needs to be synced to disk: write_block
 	// can't be unmap directly.
-
+	if(!block_is_free(blockno) && block_is_dirty(blockno))
+		write_block(blockno);
 	// Step 3: use 'syscall_mem_unmap' to unmap corresponding virtual memory.
-
+	r = syscall_mem_unmap(0, addr);
 	// Step 4: validate result of this unmap operation.
+	//if(r < 0) return;
 	user_assert(!block_is_mapped(blockno));
 }
 
