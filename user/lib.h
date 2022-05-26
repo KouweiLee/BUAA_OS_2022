@@ -54,8 +54,8 @@ int syscall_mem_alloc(u_int envid, u_int va, u_int perm);
 int syscall_mem_map(u_int srcid, u_int srcva, u_int dstid, u_int dstva,
 					u_int perm);
 int syscall_mem_unmap(u_int envid, u_int va);
-int syscall_set_kill_handler(u_int addr);
-int syscall_set_kill_fenfa(u_int addr);
+void syscall_set_kill_handler(u_int addr);
+void syscall_set_kill_fenfa(u_int addr);
 inline static int syscall_env_alloc(void)
 {
     return msyscall(SYS_env_alloc, 0, 0, 0, 0, 0);
