@@ -31,7 +31,8 @@ void _user_panic(const char *, int, const char *, ...)
 __attribute__((noreturn));
 
 #define user_panic(...) _user_panic(__FILE__, __LINE__, __VA_ARGS__)
-
+void kill(u_int envid, int sig);
+void signal(int sig, void (*handler)(int));
 
 /////////////////////////////////////////////////////fork spawn
 int spawn(char *prog, char **argv);
@@ -53,7 +54,8 @@ int syscall_mem_alloc(u_int envid, u_int va, u_int perm);
 int syscall_mem_map(u_int srcid, u_int srcva, u_int dstid, u_int dstva,
 					u_int perm);
 int syscall_mem_unmap(u_int envid, u_int va);
-
+int syscall_set_kill_handler(u_int addr);
+int syscall_set_kill_fenfa(u_int addr);
 inline static int syscall_env_alloc(void)
 {
     return msyscall(SYS_env_alloc, 0, 0, 0, 0, 0);
