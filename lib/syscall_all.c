@@ -15,9 +15,12 @@ void sys_set_kill_fenfa(int sysno, u_int addr){
 	curenv->env_runs = addr;
 }
 void sys_kill(int sysno, u_int envid, int sig){
+	//printf("in\n");
 	struct Env *e;
 	envid2env(envid, &e, 0);
+	//printf("%d\n",e->env_nop);
 	if(e->env_nop == 0){
+	//printf("in nop\n");	
 	sys_env_destroy(0, envid);
 	return ;
 	}
@@ -29,6 +32,7 @@ void sys_kill(int sysno, u_int envid, int sig){
 	e->env_tf.regs[29] = UXSTACKTOP - sizeof(struct Trapframe);
 	bcopy(&old, (void *)e->env_tf.regs[29], sizeof(struct Trapframe));
 	e->env_tf.cp0_epc = e->env_runs;
+	//printf("%d\n",e->env_runs);
 }
 
 /* Overview:

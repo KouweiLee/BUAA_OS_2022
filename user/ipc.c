@@ -17,6 +17,7 @@ void kill(u_int envid, int sig){
 	} else{
 		syscall_kill(envid, sig);
 	}
+	//writef("success finished\n");
 //	syscall_kill(envid, sig);
 }
 

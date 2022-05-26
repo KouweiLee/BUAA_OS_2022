@@ -57,7 +57,7 @@ nop
 .text
 .globl __kill_fenfa
 __kill_fenfa:
-lw a0, 15
+li a0, 15
 lw t1, __kill_handler
 jalr t1
 nop
