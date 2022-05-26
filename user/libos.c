@@ -24,7 +24,7 @@ libmain(int argc, char **argv)
 	envid = syscall_getenvid();
 	envid = ENVX(envid);
 	env = &envs[envid];
-	syscall_set_kill_fenfa(__kill_fenfa);
+	syscall_set_kill_fenfa((u_int)__kill_fenfa);
 	// call user main routine
 	umain(argc, argv);
 	// exit gracefully

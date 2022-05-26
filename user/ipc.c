@@ -22,9 +22,11 @@ void kill(u_int envid, int sig){
 }
 
 void signal(int sig, void (*handler)(int)){
+	if(sig == 15){
 	__kill_handler = handler;//NULL???
 	syscall_set_kill_handler((u_int)handler);
 	syscall_mem_alloc(0, UXSTACKTOP - BY2PG, PTE_V | PTE_R);
+	}
 }
 // Send val to whom.  This function keeps trying until
 // it succeeds.  It should panic() on any error other than
