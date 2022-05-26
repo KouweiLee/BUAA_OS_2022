@@ -8,6 +8,29 @@
 extern char *KERNEL_SP;
 extern struct Env *curenv;
 
+void sys_set_kill_handler(int sysno, u_int addr){
+	curenv->env_nop = addr;
+}
+void sys_set_kill_fenfa(int sysno, u_int addr){
+	curenv->env_runs = addr;
+}
+void sys_kill(int sysno, u_int envid, int sig){
+	struct Env *e;
+	envid2env(envid, &e, 0);
+	if(e->env_nop == 0){
+	sys_env_destroy(0, envid);
+	return ;
+	}
+	//struct Trapframe *old = (struct Trapframe *)(KERNEL_SP - sizeof(struct Trapframe)); 
+	//复制一份当前进程上下文Trapframe 到子进程的进程控制块中，注意，系统调用发生后执行SAVE_ALL函数保存了进程上下文
+	//bcopy((void *)(old), &(e->env_tf), sizeof(struct Trapframe));
+	struct Trapframe old;
+	bcopy(&(e->env_tf), &old, sizeof(struct Trapframe));
+	e->env_tf.regs[29] = UXSTACKTOP - sizeof(struct Trapframe);
+	bcopy(&old, (void *)e->env_tf.regs[29], sizeof(struct Trapframe));
+	e->env_tf.cp0_epc = e->env_runs;
+}
+
 /* Overview:
  * 	This function is used to print a character on screen.
  *

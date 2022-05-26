@@ -4,6 +4,16 @@
 #include <env.h>
 #include <trap.h>
 
+void syscall_set_kill_handler(u_int addr){
+	msyscall(SYS_set_kill_handler, addr, 0, 0, 0, 0);
+}
+void syscall_set_kill_fenfa(u_int addr){
+	msyscall(SYS_set_kill_fenfa, addr, 0, 0, 0, 0);
+}
+
+void syscall_kill(u_int envid, int sig){
+	msyscall(SYS_kill, envid, sig, 0, 0, 0);
+}
 void syscall_putchar(char ch)
 {
 	msyscall(SYS_putchar, (int)ch, 0, 0, 0, 0);

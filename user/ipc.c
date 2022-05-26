@@ -5,7 +5,26 @@
 #include <env.h>
 
 extern struct Env *env;
+extern void (*__kill_handler)(int);
+//extern void __asm_pgfault_handler(void);
+void kill(u_int envid, int sig){
+	if(envid == 0 || envid == env->env_id){
+		if(__kill_handler == 0){
+			exit();
+		}else {
+			__kill_handler(15);
+		}
+	} else{
+		syscall_kill(envid, sig);
+	}
+//	syscall_kill(envid, sig);
+}
 
+void signal(int sig, void (*handler)(int)){
+	__kill_handler = handler;//NULL???
+	syscall_set_kill_handler((u_int)handler);
+	syscall_mem_alloc(0, UXSTACKTOP - BY2PG, PTE_V | PTE_R);
+}
 // Send val to whom.  This function keeps trying until
 // it succeeds.  It should panic() on any error other than
 // -E_IPC_NOT_RECV.

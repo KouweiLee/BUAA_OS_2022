@@ -8,7 +8,8 @@ exit(void)
 	//close_all();
 	syscall_env_destroy(0);
 }
-
+//extern void (*__pgfault_handler)(u_int);
+extern void __kill_fenfa(void);
 
 struct Env *env;
 
@@ -23,6 +24,7 @@ libmain(int argc, char **argv)
 	envid = syscall_getenvid();
 	envid = ENVX(envid);
 	env = &envs[envid];
+	syscall_set_kill_fenfa(__kill_fenfa);
 	// call user main routine
 	umain(argc, argv);
 	// exit gracefully
