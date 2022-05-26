@@ -4,7 +4,25 @@
 #include <mmu.h>
 #include <env.h>
 
-
+int make_shared(void *va){
+    u_int addr = (u_int)va;
+    u_int perm;
+    if(addr >= UTOP) 
+        return -1;
+    if(((*vpd)[addr>>22] & PTE_V) && ((*vpt)[addr>>12] & PTE_V)){//存在映射关系
+        perm = (*vpt)[addr>>12] & 0xfff;
+        if((perm & PTE_R)==0)
+            return -1;
+        if(perm & PTE_LIBRARY)
+            return (*vpt)[addr>>12] & (~0xfff);
+        syscall_mem_map(0, addr, 0, addr, perm | PTE_LIBRARY);
+        return (*vpt)[addr>>12] & (~0xfff);
+    } else {
+        int r = syscall_mem_alloc(0, addr, PTE_V|PTE_R|PTE_LIBRARY);
+        if(r < 0) return -1;
+        return (*vpt)[addr>>12] & (~0xfff);
+    }
+}
 /* ----------------- help functions ---------------- */
 
 /* Overview:
