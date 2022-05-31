@@ -228,7 +228,7 @@ alloc_block_num(void)
 	for (blockno = 3; blockno < super->s_nblocks; blockno++) {
 		if (bitmap[blockno / 32] & (1 << (blockno % 32))) {	// the block is free
 			bitmap[blockno / 32] &= ~(1 << (blockno % 32));
-			write_block(blockno / BIT2BLK + 2); // write to disk.
+			write_block(blockno / BIT2BLK + 2); // write to disk.更新磁盘的位图
 			return blockno;
 		}
 	}
@@ -243,7 +243,7 @@ alloc_block(void)
 {
 	int r, bno;
 	// Step 1: find a free block.
-	if ((r = alloc_block_num()) < 0) { // failed.
+	if ((r = alloc_block_num()) < 0) { // failed. alloc_block_num返回空闲的磁盘块编号
 		return r;
 	}
 	bno = r;
@@ -539,15 +539,21 @@ dir_lookup(struct File *dir, char *name, struct File **file)
 	struct File *f;
 
 	// Step 1: Calculate nblock: how many blocks are there in this dir？
-
+	nblock = dir->f_size / BY2BLK;
 	for (i = 0; i < nblock; i++) {
 		// Step 2: Read the i'th block of the dir.
 		// Hint: Use file_get_block.
-
-
-		// Step 3: Find target file by file name in all files on this block.
-		// If we find the target file, set the result to *file and set f_dir field.
-
+		if((r = file_get_block(dir,	i, &blk)) < 0){
+			return r;
+		}
+		for(j = 0; j < FILE2BLK; j++){
+			f = ((struct File*)blk) + j;
+			if(strcmp(f->f_name, name) == 0){
+				*file = f;
+				f->f_dir = dir;
+				return 0;
+			}
+		}
 	}
 
 	return -E_NOT_FOUND;
