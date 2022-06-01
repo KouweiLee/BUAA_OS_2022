@@ -81,17 +81,15 @@ ide_write(u_int diskno, u_int secno, void *src, u_int nsecs)
 	while (offset_begin + offset < offset_end) {
 		now = offset_begin + offset;
         if(syscall_write_dev(&diskno, 0x13000010, 4) < 0)
-            user_panic("ide_read_panic!");
+            user_panic("ide_write_panic!");
         if(syscall_write_dev(&now, 0x13000000, 4) < 0)
-            user_panic("ide_read_panic!");
+            user_panic("ide_write_panic!");
 		if(syscall_write_dev((u_int)(src+offset),0x13004000, 0x200) < 0)
-            user_panic("ide_read_panic!");
+            user_panic("ide_write_panic!");
         if(syscall_write_dev(&one, 0x13000020, 4) < 0)
-            user_panic("ide_read_panic!");
-        if(syscall_write_dev(&r, 0x13000030, 4) < 0)
-            user_panic("ide_read_panic!");
-        if(r == 0)
-            user_panic("ide_read_panic!");
+            user_panic("ide_write_panic!");
+        if(syscall_read_dev(&r, 0x13000030, 4) < 0)
+            user_panic("ide_write_panic!");
         offset+=0x200;
 		// if error occur, then panic.
 	}

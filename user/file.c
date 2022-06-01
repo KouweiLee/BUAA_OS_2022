@@ -40,22 +40,37 @@ open(const char *path, int mode)
 
 	// Step 1: Alloc a new Fd, return error code when fail to alloc.
 	// Hint: Please use fd_alloc.
-
-
+	if((r = fd_alloc(&fd)) < 0) 
+		return r;
+	
 	// Step 2: Get the file descriptor of the file to open.
 	// Hint: Read fsipc.c, and choose a function.
-
+	if((r = fsipc_open(path, mode, fd)) < 0) 
+		return r;
 
 	// Step 3: Set the start address storing the file's content. Set size and fileid correctly.
 	// Hint: Use fd2data to get the start address.
-
-
+	va = fd2data(fd);//返回fd对应的文件存放的虚拟地址，每个fd都对应有固定的文件存放位置
+	
 	// Step 4: Alloc memory, map the file content into memory.
-
+	ffd = fd;//????
+	size = ffd->f_file.f_size;
+	fileid = ffd->f_fileid;
 
 	// Step 5: Return the number of file descriptor.
-
-
+	for(i=0;i<size;i+=BY2PG){
+		r = syscall_mem_alloc(0, va+i, PTE_V|PTE_R);//为什么不是根据mode来判断是否PTE_R呢？
+		if(r)
+			return r;
+		r = fsipc_map(fileid, i, va+i);
+		if(r) 
+			return r;
+	}
+	int fdnum = fd2num(fd);//get fdno of fd
+	/*if(mode & O_APPND){
+		seek(fdnum, size);
+	}*/
+	return fdnum;
 }
 
 // Overview:
@@ -258,7 +273,7 @@ remove(const char *path)
 {
 	// Your code here.
 	// Call fsipc_remove.
-
+	return fsipc_remove(path);
 }
 
 // Overview:

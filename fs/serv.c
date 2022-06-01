@@ -34,10 +34,10 @@ serve_init(void)
 	u_int va;
 
 	// Set virtual address to map.
-	va = FILEVA;
+	va = FILEVA;//0x6000_0000
 
 	// Initial array opentab.
-	for (i = 0; i < MAXOPEN; i++) {
+	for (i = 0; i < MAXOPEN; i++) {//MAXOPEN = 1024
 		opentab[i].o_fileid = i;
 		opentab[i].o_ff = (struct Filefd *)va;
 		va += BY2PG;
@@ -208,10 +208,12 @@ serve_remove(u_int envid, struct Fsreq_remove *rq)
 
 	// Step 1: Copy in the path, making sure it's terminated.
 	// Notice: add \0 to the tail of the path
-
+	user_bcopy(rq->req_path, path, MAXNAMELEN);
+	path[MAXPATHLEN-1] = '\0';
 	// Step 2: Remove file from file system and response to user-level process.
 	// Call file_remove and ipc_send an approprite value to corresponding env.
-
+	r = file_remove(path);
+	ipc_send(envid, r, 0, 0);
 }
 
 void

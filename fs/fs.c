@@ -205,7 +205,7 @@ void
 free_block(u_int blockno)
 {
 	// Step 1: Check if the parameter `blockno` is valid (`blockno` can't be zero).
-	if(blockno == 0 || (super!=NULL && blockno >super->s_nblocks)) 
+	if(blockno == 0 || (super!=NULL && blockno >= super->s_nblocks)) 
 		return;
 	bitmap[blockno / 32] |= (1 << (blockno % 32));	
 	// Step 2: Update the flag bit in bitmap.
@@ -274,7 +274,7 @@ read_super(void)
 		user_panic("cannot read superblock: %e", r);
 	}
 
-	super = blk;
+	super = blk;//这个是内存里的super
 
 	// Step 2: Check fs magic nunber.
 	if (super->s_magic != FS_MAGIC) {
@@ -559,7 +559,42 @@ dir_lookup(struct File *dir, char *name, struct File **file)
 	return -E_NOT_FOUND;
 }
 
+/*
+int dir_lookup(struct File *dir, char *name, struct File **file)
+{
+	int r;
+	u_int i, j, nblock;
+	void *blk;
+	struct File *f;
 
+	// Step 1: Calculate nblock: how many blocks this dir have.
+
+	nblock = dir->f_size / BY2BLK;
+
+	for (i = 0; i < nblock; i++)
+	{
+		// Step 2: Read the i'th block of the dir.
+		// Hint: Use file_get_block.
+		r = file_get_block(dir, i, &blk);
+		if (r)
+			return r;
+		f = (struct File *)blk;
+		// Step 3: Find target file by file name in all files on this block.
+		// If we find the target file, set the result to *file and set f_dir field.
+		for (j = 0; j < FILE2BLK; ++j)
+		{
+			if (strcmp(name, f[j].f_name) == 0)
+			{
+				*file = f + j;
+				f[j].f_dir = dir;
+				return 0;
+			}
+		}
+	}
+
+	return -E_NOT_FOUND;
+}
+*/
 // Overview:
 //	Alloc a new File structure under specified directory. Set *file
 //	to point at a free File structure in dir.

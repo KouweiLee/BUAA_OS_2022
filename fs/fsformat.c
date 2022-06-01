@@ -228,12 +228,7 @@ struct File *create_file(struct File *dirf) {
 	}
 	bno = make_link_block(dirf, nblk);
 	return (struct File*)(disk[bno].data);
-
-    // Step2: Find an unused pointer
-
-
 }
-
 // Write file to disk under specified dir.
 void write_file(struct File *dirf, const char *path) {
     int iblk = 0, r = 0, n = sizeof(disk[0].data);
