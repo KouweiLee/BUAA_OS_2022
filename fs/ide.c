@@ -136,7 +136,7 @@ int raid4_write(u_int blockno, void *src){
 	}
 	return r;
 }
-
+/*
 int raid4_read(u_int blockno, void *dst){
 	char *begin = (char*)dst;
 	u_int secno = 2*blockno;
@@ -149,6 +149,71 @@ int raid4_read(u_int blockno, void *dst){
 	}
 	if(r>0){
 		return r;
+	}
+	//ÎÞ´ÅÅÌËð»µ
+	for(i=1;i<=4;i++){
+		ide_read(i, secno, begin+0x200*(i-1), 1);
+		ide_read(i, secno+1, begin + 0x200*(i+3), 1);
+	}
+	user_bzero((void *)p0, 512);
+	user_bzero((void *)p1, 512);
+	ide_read(5, secno, p0, 1);
+	ide_read(5, secno+1, p1, 1);
+	for(i=0;i<512;i++){
+		char aa = begin[i] ^ begin[i+0x200] ^ begin[i+0x200*2] ^ begin[i+0x200*3];
+		char ab = begin[i+0x200*4] ^ begin[i+0x200*5] ^ begin[i+0x200*6] ^ begin[i+0x200*7];
+		if(!(p0[i] == aa && p1[i] == ab)){
+			return -1;
+		}
+	}
+	return 0;
+}*/
+int raid4_read(u_int blockno, void *dst){
+	char *begin = (char*)dst;
+	u_int secno = 2*blockno;
+	int i,j, r=0, invalid = 0;
+	char p0[512], p1[512];
+	for(i=1;i<=5;i++){
+		if(!raid4_valid(i)){
+			r++;
+		}
+	}
+	if(r>0){
+		if(r>1){
+			return r;
+		}
+		for(i=1;i<=5;i++){
+			if(!raid4_valid(i)){
+			invalid = i;
+			break;
+			}
+		}
+	}
+	if(invalid != 0){
+		if(invalid == 5){
+			for(i=1;i<=4;i++){
+			ide_read(i, secno, begin+0x200*(i-1), 1);
+			ide_read(i, secno+1, begin + 0x200*(i+3), 1);
+			}
+			return 1;
+		}
+		user_bzero((void *)p0, 512);
+		user_bzero((void *)p1, 512);
+		ide_read(5, secno, p0, 1);
+		ide_read(5, secno+1, p1, 1);
+		for(i=1;i<=4;i++){
+			if(i!=invalid){
+				ide_read(i, secno, begin+0x200*(i-1), 1);
+				ide_read(i, secno+1, begin + 0x200*(i+3), 1);
+				for(j=0;j<512;j++){
+					p0[j] = p0[j] ^ begin[j+0x200*(i-1)];
+					p1[j] = p1[j] ^ begin[j+0x200*(i+3)];
+				}
+			}
+		}
+		user_bcopy(p0, begin + 0x200*(invalid-1), 512);
+		user_bcopy(p1, begin + 0x200*(invalid+3), 512);
+		return 1;
 	}
 	//ÎÞ´ÅÅÌËð»µ
 	for(i=1;i<=4;i++){
