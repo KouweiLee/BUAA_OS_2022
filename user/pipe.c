@@ -85,12 +85,16 @@ _pipeisclosed(struct Fd *fd, struct Pipe *p)
 	// everybody left is what fd is.  So the other end of
 	// the pipe is closed.
 	int pfd,pfp,runs;
+	do{
+		runs = env->env_runs;
+		pfd = pageref(fd);
+		pfp = pageref(p);
+	} while(runs != env->env_runs);
 	
-
-
-
-	user_panic("_pipeisclosed not implemented");
-//	return 0;
+	if(pfd == pfp)
+		return 1;
+	//user_panic("_pipeisclosed not implemented");
+	return 0;
 }
 
 int
@@ -120,10 +124,19 @@ piperead(struct Fd *fd, void *vbuf, u_int n, u_int offset)
 	int i;
 	struct Pipe *p;
 	char *rbuf;
-	
-
-
-	user_panic("piperead not implemented");
+	p = fd2data(fd);//fd为读端文件描述符，对应的页为管道所在页	
+	rbuf = (char *)vbuf;
+	for(i=0;i<n;i++){
+		while (p->p_rpos == p->p_wpos){
+			if(_pipeisclosed(fd, p) || i>0)
+				return i;
+			syscall_yield();
+		}
+		rbuf[i] = p->p_buf[p->p_rpos % BY2PIPE];
+		p->p_rpos++;
+	}
+	return n;
+	//user_panic("piperead not implemented");
 //	return -E_INVAL;
 }
 
@@ -140,13 +153,18 @@ pipewrite(struct Fd *fd, const void *vbuf, u_int n, u_int offset)
 	int i;
 	struct Pipe *p;
 	char *wbuf;
-	
-
-//	return -E_INVAL;
-	
-	
-	user_panic("pipewrite not implemented");
-
+	p = fd2data(fd);	
+	wbuf = (char *)vbuf;
+	for(i=0;i<n;i++){
+		while(p->p_wpos - p->p_rpos == BY2PIPE){
+			if(_pipeisclosed(fd, p))
+				return i;
+			syscall_yield();
+		}
+		p->p_buf[p->p_wpos % BY2PIPE] = wbuf[i];
+		p->p_wpos++;
+	}
+	//user_panic("pipewrite not implemented");
 	return n;
 }
 
