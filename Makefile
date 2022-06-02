@@ -35,7 +35,7 @@ vmlinux: $(modules)
 $(modules): 
 	$(MAKE) --directory=$@
 exe:
-	make clean && make && /OSLAB/gxemul -E testmips -C R3000 -M 64 -d gxemul/fs.img gxemul/vmlinux
+	make clean && make && /OSLAB/gxemul -E testmips -C R3000 -M 64 -d 0:gxemul/fs.img -d 1:gxemul/fs1.img -d 2:gxemul/fs2.img gxemul/vmlinux
 run:
 	/OSLAB/gxemul -E testmips -C R3000 -M 64 -d gxemul/fs.img gxemul/vmlinux
 clean: 
