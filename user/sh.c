@@ -107,7 +107,7 @@ again:
 			}
 			// Your code here -- open t for reading,
 			// dup it onto fd 0, and then close the fd you got.
-			r = stat(t, &state);//获得文件t打开的相关信息
+			/*r = stat(t, &state);//获得文件t打开的相关信息
 			if(r<0){
 				writef("cannot open file\n");
 				exit();
@@ -115,7 +115,7 @@ again:
 			if(state.st_isdir != 0){
 				writef("specified path should be file\n");
 				exit();
-			}
+			}*/
 			fdnum = open(t, O_RDONLY);
 			dup(fdnum, 0);
 			close(fdnum);
@@ -128,7 +128,7 @@ again:
 			}
 			// Your code here -- open t for reading,
 			// dup it onto fd 0, and then close the fd you got.
-			r = stat(t, &state);//获得文件t打开的相关信息
+			/*r = stat(t, &state);//获得文件t打开的相关信息
 			if(r<0){
 				writef("cannot open file\n");
 				exit();
@@ -136,7 +136,7 @@ again:
 			if(state.st_isdir != 0){
 				writef("specified path should be file\n");
 				exit();
-			}
+			}*/
 			fdnum = open(t, O_RDONLY|O_CREAT);
 			dup(fdnum, 1);
 			close(fdnum);
