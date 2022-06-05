@@ -117,17 +117,17 @@ again:
 				exit();
 			}*/
 			fdnum = open(t, O_RDONLY);
+			if(fdnum < 0){
+				user_panic("< open file failed!");
+			}
 			dup(fdnum, 0);
 			close(fdnum);
-			//user_panic("< redirection not implemented");
 			break;
 		case '>':
 			if(gettoken(0, &t) != 'w'){
 				writef("syntax error: < not followed by word\n");
 				exit();
 			}
-			// Your code here -- open t for reading,
-			// dup it onto fd 0, and then close the fd you got.
 			/*r = stat(t, &state);//获得文件t打开的相关信息
 			if(r<0){
 				writef("cannot open file\n");
@@ -137,10 +137,12 @@ again:
 				writef("specified path should be file\n");
 				exit();
 			}*/
-			fdnum = open(t, O_RDONLY|O_CREAT);
+			fdnum = open(t, O_WRONLY|O_CREAT);
+			if(fdnum < 0){
+				user_panic("> open file failed!");
+			}
 			dup(fdnum, 1);
 			close(fdnum);
-			//user_panic("> redirection not implemented");
 			break;
 		case '|':
 			// Your code here.
