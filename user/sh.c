@@ -83,6 +83,7 @@ runcmd(char *s)
 	char *argv[MAXARGS], *t;
 	int argc, c, i, r, p[2], fd, rightpipe;
 	int fdnum;
+	struct Stat state;
 	rightpipe = 0;
 	gettoken(s, 0);
 again:
@@ -106,12 +107,40 @@ again:
 			}
 			// Your code here -- open t for reading,
 			// dup it onto fd 0, and then close the fd you got.
-			user_panic("< redirection not implemented");
+			r = stat(t, &state);//获得文件t打开的相关信息
+			if(r<0){
+				writef("cannot open file\n");
+				exit();
+			}
+			if(state.st_isdir != 0){
+				writef("specified path should be file\n");
+				exit();
+			}
+			fdnum = open(t, O_RDONLY);
+			dup(fdnum, 0);
+			close(fdnum);
+			//user_panic("< redirection not implemented");
 			break;
 		case '>':
-			// Your code here -- open t for writing,
-			// dup it onto fd 1, and then close the fd you got.
-			user_panic("> redirection not implemented");
+			if(gettoken(0, &t) != 'w'){
+				writef("syntax error: < not followed by word\n");
+				exit();
+			}
+			// Your code here -- open t for reading,
+			// dup it onto fd 0, and then close the fd you got.
+			r = stat(t, &state);//获得文件t打开的相关信息
+			if(r<0){
+				writef("cannot open file\n");
+				exit();
+			}
+			if(state.st_isdir != 0){
+				writef("specified path should be file\n");
+				exit();
+			}
+			fdnum = open(t, O_RDONLY|O_CREAT);
+			dup(fdnum, 1);
+			close(fdnum);
+			//user_panic("> redirection not implemented");
 			break;
 		case '|':
 			// Your code here.
@@ -129,7 +158,20 @@ again:
 			//		set "rightpipe" to the child envid
 			//		goto runit, to execute this piece of the pipeline
 			//			and then wait for the right side to finish
-			user_panic("| not implemented");
+			pipe(p);
+			rightpipe = fork();
+			if(rightpipe == 0){//子进程
+				dup(p[0], 0);
+				close(p[0]);
+				close(p[1]);
+				goto again;
+			}else {
+				dup(p[1], 1);
+				close(p[0]);
+				close(p[1]);
+				goto runit;
+			}
+			//user_panic("| not implemented");
 			break;
 		}
 	}

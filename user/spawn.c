@@ -102,6 +102,33 @@ int
 usr_load_elf(int fd , Elf32_Phdr *ph, int child_envid){
 	//Hint: maybe this function is useful 
 	//      If you want to use this func, you should fill it ,it's not hard
+	u_long va = ph->p_vaddr;
+	u_int32_t sg_size = ph->p_memsz;
+	u_int32_t bin_size = ph->p_filesz;
+	u_char *bin;
+	u_long i = 0;
+	int r, size;
+	u_long offset = va - ROUNDDOWN(va, BY2PG);
+	r = read_map(fd, ph->p_offset, &bin);//找到内存文件fd的偏移量为p_offset的位置，并将其地址给bin
+	if(offset){
+		if((r = syscall_mem_alloc(child_envid, va, PTE_V | PTE_R)) < 0)
+			return r;
+		size=MIN(BY2PG - offset, bin_size);
+		user_bcopy(bin, va, size);//这里少写了，???
+		i+=size;
+	}
+	while(i<bin_size){
+		if((r = syscall_mem_alloc(child_envid, va+i, PTE_V|PTE_R)) < 0)
+			return r;
+		size = MIN(BY2PG, bin_size -i);
+		user_bcopy(bin+i, va+i, size);
+		i+=BY2PG;
+	}
+	while(i < sg_size){
+		if((r = syscall_mem_alloc(child_envid, va+i, PTE_V|PTE_R)) < 0)
+			return r;
+		i+=BY2PG;
+	}
 	return 0;
 }
 
@@ -122,9 +149,26 @@ int spawn(char *prog, char **argv)
 		user_panic("spawn ::open line 102 RDONLY wrong !\n");
 		return r;
 	}
+	
 	// Your code begins here
 	// Before Step 2 , You had better check the "target" spawned is a execute bin 
+	fd = r;
+	if((r = readn(fd, elfbuf, sizeof(Elf32_Ehdr))) < 0)
+		return r;
+	elf = (Elf32_Ehdr*) elfbuf;
+	if(!usr_is_elf_format(elf) || elf->e_type != 2)//2 means executable bin
+		return -E_INVAL;
+
 	// Step 2: Allocate an env (Hint: using syscall_env_alloc())
+	r = syscall_env_alloc();
+	if(r<0) return;
+	if(r == 0) {//son executes this
+		env = envs+ENVX(syscall_getenvid());
+		return 0;
+	}
+	//father executes this for son
+	child_envid = r;
+	init_stack(child_envid, argv, &esp);//esp 是个啥???
 	// Step 3: Using init_stack(...) to initialize the stack of the allocated env
 	// Step 3: Map file's content to new env's text segment
 	//        Hint 1: what is the offset of the text segment in file? try to use objdump to find out.
@@ -135,6 +179,20 @@ int spawn(char *prog, char **argv)
 	//       the file is opened successfully, and env is allocated successfully.
 	// Note2: You can achieve this func in any way ，remember to ensure the correctness
 	//        Maybe you can review lab3 
+	text_start = elf->e_phoff;
+	size = elf->e_phentsize;
+	if((r = seek(fd, text_start)) < 0) 
+		return r;
+	for(i=0; i<elf->e_phnum; i++){
+		if((r = readn(fd, elfbuf, size)) < 0)
+			return r;
+		ph = (Elf32_Phdr*)elfbuf;
+		if(ph->p_type == PT_LOAD){
+			r = usr_load_elf(fd, ph, child_envid);
+			if(r < 0)
+				return r;
+		}
+	}
 	// Your code ends here
 
 	struct Trapframe *tf;

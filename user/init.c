@@ -55,12 +55,12 @@ umain(int argc, char **argv)
 	writef("init: running sh\n");
 
 	// being run directly from kernel, so no file descriptors open yet
-	close(0);
+	close(0);//关闭0，使得opencons打开的文件描述符编号为0
 	if ((r = opencons()) < 0)
 		user_panic("opencons: %e", r);
 	if (r != 0)
 		user_panic("first opencons used fd %d", r);
-	if ((r = dup(0, 1)) < 0)
+	if ((r = dup(0, 1)) < 0)//标准输出置为1
 		user_panic("dup: %d", r);
 
 write(1,"LALA",4);
