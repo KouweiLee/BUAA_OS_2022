@@ -173,6 +173,8 @@ again:
 			}
 			//user_panic("| not implemented");
 			break;
+		default:
+			break;
 		}
 	}
 
