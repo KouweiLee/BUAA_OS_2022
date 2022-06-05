@@ -175,6 +175,7 @@ int usr_load_elf(int fd, Elf32_Phdr *ph, int child_envid)
 	}
 	return 0;
 }
+/*
 int spawn(char *prog, char **argv)
 {
 	u_char elfbuf[512];
@@ -281,7 +282,7 @@ int spawn(char *prog, char **argv)
 	return child_envid;		
 
 }
-/*
+*/
 int spawn(char *prog, char **argv)
 {
 	u_char elfbuf[512];
@@ -301,7 +302,7 @@ int spawn(char *prog, char **argv)
 	strcpy(progname, prog);
 	if (name_len <= 2 || prog[name_len - 1] != 'b' || prog[name_len - 2] != '.')
 	{
-		strcat(progname, ".b");
+		//strcat(progname, ".b");
 	}//确保后两位为.b，咱们先不写
 
 	if ((r = open(progname, O_RDONLY)) < 0)
@@ -409,7 +410,7 @@ int spawn(char *prog, char **argv)
 	}
 	return child_envid;
 }
-*/
+
 int
 spawnl(char *prog, char *args, ...)
 {
