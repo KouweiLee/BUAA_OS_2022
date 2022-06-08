@@ -47,6 +47,7 @@ fd_alloc(struct Fd **fd)
 			return 0;
 		}
 
+
 		if (((* vpt)[va / BY2PG] & PTE_V) == 0) {	//the fd is not used
 			*fd = (struct Fd *)va;
 			return 0;
