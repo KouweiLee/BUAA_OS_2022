@@ -42,6 +42,7 @@ serve_init(void)
 		opentab[i].o_ff = (struct Filefd *)va;
 		va += BY2PG;
 	}
+	//writef("opentab is %x\n", opentab);0x40800
 }
 
 // Overview:
