@@ -113,7 +113,6 @@ serve_open(u_int envid, struct Fsreq_open *rq)
 		user_panic("open_alloc failed: %d, invalid path: %s", r, path);
 		ipc_send(envid, r, 0, 0);
 	}
-
 	fileid = r;
 
 	// Open the file.
@@ -123,6 +122,7 @@ serve_open(u_int envid, struct Fsreq_open *rq)
 		return ;
 	}
 
+	writef("hellohere\n");
 	// Save the file pointer.
 	o->o_file = f;
 

@@ -8,6 +8,7 @@ void umain()
     fdnum = open("/created_file", O_RDWR|O_CREAT);
     fwritef(fdnum, "test create");
     close(fdnum);
+	writef("asdasda\n");
     fdnum = open("/created_file", O_RDWR);
     read(fdnum, buf, 150);
     writef("read from new file: %s\n", buf);

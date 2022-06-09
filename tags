@@ -248,6 +248,7 @@ FILEVA	fs/serv.c	20;"	d	file:
 FSIMGFILES	fs/Makefile	/^FSIMGFILES := motd newmotd$/;"	m
 FSLIB	fs/Makefile	/^FSLIB :=	fs.o \\$/;"	m
 FSREQ_CLOSE	include/fs.h	62;"	d
+FSREQ_CREATE	include/fs.h	66;"	d
 FSREQ_DIRTY	include/fs.h	63;"	d
 FSREQ_MAP	include/fs.h	60;"	d
 FSREQ_OPEN	include/fs.h	59;"	d
@@ -262,6 +263,7 @@ File	fs/fsformat.c	/^typedef struct File File;$/;"	t	typeref:struct:File	file:
 File	include/fs.h	/^struct File {$/;"	s
 Filefd	user/fd.h	/^struct Filefd {$/;"	s
 Fsreq_close	include/fs.h	/^struct Fsreq_close {$/;"	s
+Fsreq_create	include/fs.h	/^struct Fsreq_create{$/;"	s
 Fsreq_dirty	include/fs.h	/^struct Fsreq_dirty {$/;"	s
 Fsreq_map	include/fs.h	/^struct Fsreq_map {$/;"	s
 Fsreq_open	include/fs.h	/^struct Fsreq_open {$/;"	s
@@ -331,12 +333,14 @@ OUTPUT	lib/print.c	36;"	d	file:
 OUTPUT	lib/testprint.c	36;"	d	file:
 OUTPUT	user/print.c	36;"	d	file:
 O_ACCMODE	user/lib.h	139;"	d
-O_CREAT	user/lib.h	141;"	d
-O_EXCL	user/lib.h	143;"	d
-O_MKDIR	user/lib.h	144;"	d
+O_ALONE	user/lib.h	141;"	d
+O_APPEND	user/lib.h	140;"	d
+O_CREAT	user/lib.h	142;"	d
+O_EXCL	user/lib.h	144;"	d
+O_MKDIR	user/lib.h	145;"	d
 O_RDONLY	user/lib.h	136;"	d
 O_RDWR	user/lib.h	138;"	d
-O_TRUNC	user/lib.h	142;"	d
+O_TRUNC	user/lib.h	143;"	d
 O_WRONLY	user/lib.h	137;"	d
 Open	fs/serv.c	/^struct Open {$/;"	s	file:
 PADDR	include/mmu.h	146;"	d
@@ -605,7 +609,6 @@ devfile	user/file.c	/^struct Dev devfile = {$/;"	v	typeref:struct:Dev
 devpipe	user/pipe.c	/^struct Dev devpipe = {$/;"	v	typeref:struct:Dev
 devtab	user/fd.c	/^static struct Dev *devtab[] = {$/;"	v	typeref:struct:Dev	file:
 diff_msg	fs/test.c	/^static char *diff_msg = "This is a different massage of the day!\\n\\n";$/;"	v	file:
-diff_msg	user/fstest.c	/^static char *diff_msg = "This is a different massage of the day!\\n\\n";$/;"	v	file:
 dir_alloc_file	fs/fs.c	/^dir_alloc_file(struct File *dir, struct File **file)$/;"	f
 dir_lookup	fs/fs.c	/^dir_lookup(struct File *dir, char *name, struct File **file)$/;"	f
 disk	fs/fsformat.c	/^} disk[NBLOCK];$/;"	v	typeref:struct:Block
@@ -727,6 +730,7 @@ fs_test	fs/test.c	/^fs_test(void)$/;"	f
 fsformat	fs/Makefile	/^fsformat  := .\/fsformat$/;"	m
 fsipc	user/fsipc.c	/^fsipc(u_int type, void *fsreq, u_int dstva, u_int *perm)$/;"	f	file:
 fsipc_close	user/fsipc.c	/^fsipc_close(u_int fileid)$/;"	f
+fsipc_create	user/fsipc.c	/^fsipc_create(char *path){$/;"	f
 fsipc_dirty	user/fsipc.c	/^fsipc_dirty(u_int fileid, u_int offset)$/;"	f
 fsipc_map	user/fsipc.c	/^fsipc_map(u_int fileid, u_int offset, u_int dstva)$/;"	f
 fsipc_open	user/fsipc.c	/^fsipc_open(const char *path, u_int omode, struct Fd *fd)$/;"	f
@@ -801,7 +805,6 @@ mkenvid	lib/env.c	/^u_int mkenvid(struct Env *e) {$/;"	f
 mm_dir	Makefile	/^mm_dir		  := mm$/;"	m
 modules	Makefile	/^modules		  := boot drivers init lib mm user fs$/;"	m
 msg	fs/test.c	/^static char *msg = "This is the NEW message of the day!\\n\\n";$/;"	v	file:
-msg	user/fstest.c	/^static char *msg = "This is the NEW message of the day!\\n\\n";$/;"	v	file:
 myoutput	lib/printf.c	/^static void myoutput(void *arg, char *s, int l)$/;"	f	file:
 nbitblock	fs/fsformat.c	/^uint32_t nbitblock; \/\/ the number of bitmap blocks.$/;"	v
 nbitmap	fs/fs.c	/^u_int nbitmap;		\/\/ number of bitmap blocks$/;"	v
@@ -895,6 +898,7 @@ req_fileid	include/fs.h	/^	int req_fileid;$/;"	m	struct:Fsreq_set_size
 req_offset	include/fs.h	/^	u_int req_offset;$/;"	m	struct:Fsreq_dirty
 req_offset	include/fs.h	/^	u_int req_offset;$/;"	m	struct:Fsreq_map
 req_omode	include/fs.h	/^	u_int req_omode;$/;"	m	struct:Fsreq_open
+req_path	include/fs.h	/^	char req_path[MAXPATHLEN];$/;"	m	struct:Fsreq_create
 req_path	include/fs.h	/^	char req_path[MAXPATHLEN];$/;"	m	struct:Fsreq_open
 req_path	include/fs.h	/^	u_char req_path[MAXPATHLEN];$/;"	m	struct:Fsreq_remove
 req_size	include/fs.h	/^	u_int req_size;$/;"	m	struct:Fsreq_set_size
@@ -926,6 +930,7 @@ sched_yield	lib/sched.c	/^void sched_yield(void)$/;"	f
 seek	user/fd.c	/^seek(int fdnum, u_int offset)$/;"	f
 serve	fs/serv.c	/^serve(void)$/;"	f
 serve_close	fs/serv.c	/^serve_close(u_int envid, struct Fsreq_close *rq)$/;"	f
+serve_create	fs/serv.c	/^void serve_create(u_int envid, struct Fsreq_create* rq){$/;"	f
 serve_dirty	fs/serv.c	/^serve_dirty(u_int envid, struct Fsreq_dirty *rq)$/;"	f
 serve_init	fs/serv.c	/^serve_init(void)$/;"	f
 serve_map	fs/serv.c	/^serve_map(u_int envid, struct Fsreq_map *rq)$/;"	f
@@ -935,7 +940,7 @@ serve_set_size	fs/serv.c	/^serve_set_size(u_int envid, struct Fsreq_set_size *rq
 serve_sync	fs/serv.c	/^serve_sync(u_int envid)$/;"	f
 set_except_vector	lib/traps.c	/^void *set_except_vector(int n, void *addr)$/;"	f
 set_pgfault_handler	user/pgfault.c	/^set_pgfault_handler(void (*fn)(u_int va))$/;"	f
-setup_c0_status	lib/kclock_asm.S	/^setup_c0_status STATUS_CU0|0x1001 0$/;"	l
+setup_c0_status	lib/kclock_asm.S	/^setup_c0_status STATUS_CU0|STATUSF_IP4|0x1 0$/;"	l
 sfork	user/fork.c	/^sfork(void)$/;"	f
 sh_addr	readelf/kerelf.h	/^        Elf32_Addr sh_addr;                 \/* Section addr *\/$/;"	m	struct:__anon5
 sh_addralign	readelf/kerelf.h	/^        Elf32_Word sh_addralign;            \/* Section alignment *\/$/;"	m	struct:__anon5
@@ -1085,6 +1090,7 @@ umain	user/devtst.c	/^void umain()$/;"	f
 umain	user/fktest.c	/^void umain()$/;"	f
 umain	user/fstest.c	/^void umain()$/;"	f
 umain	user/idle.c	/^void umain()$/;"	f
+umain	user/mytest.c	/^void umain() {$/;"	f
 umain	user/pingpong.c	/^umain(void)$/;"	f
 umain	user/tltest.c	/^void umain() {$/;"	f
 unmap_block	fs/fs.c	/^unmap_block(u_int blockno)$/;"	f

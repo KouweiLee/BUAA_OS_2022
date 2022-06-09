@@ -758,7 +758,7 @@ file_create(char *path, struct File **file)
 	}
 
 	strcpy((char *)f->f_name, name);
-	*file = f;
+	if(file) *file = f;
 	return 0;
 }
 
