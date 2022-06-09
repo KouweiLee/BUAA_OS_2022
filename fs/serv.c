@@ -133,7 +133,9 @@ serve_open(u_int envid, struct Fsreq_open *rq)
 	o->o_mode = rq->req_omode;
 	ff->f_fd.fd_omode = o->o_mode;
 	ff->f_fd.fd_dev_id = devfile.dev_id;
-
+	if(o->o_mode & O_ALONE)
+		ipc_send(envid, 0, (u_int)o->o_ff, PTE_V | PTE_R | PTE_COW);
+	else 
 	ipc_send(envid, 0, (u_int)o->o_ff, PTE_V | PTE_R | PTE_LIBRARY);
 }
 
@@ -245,6 +247,10 @@ serve_sync(u_int envid)
 	ipc_send(envid, 0, 0, 0);
 }
 
+void serve_create(u_int envid, struct Fsreq_create* rq){
+	int r = file_create(rq->req_path, NULL);
+	ipc_send(envid, r, 0, 0);
+}
 void
 serve(void)
 {
@@ -263,6 +269,8 @@ serve(void)
 		}
 
 		switch (req) {
+			case FSREQ_CREATE:
+				serve_create(whom, (struct Fsreq_create *)REQVA);
 			case FSREQ_OPEN:
 				serve_open(whom, (struct Fsreq_open *)REQVA);
 				break;

@@ -45,8 +45,15 @@ open(const char *path, int mode)
 	
 	// Step 2: Get the file descriptor of the file to open.
 	// Hint: Read fsipc.c, and choose a function.
-	if((r = fsipc_open(path, mode, fd)) < 0) 
-		return r;
+	if((r = fsipc_open(path, mode, fd)) < 0){
+		if( r == -E_NOT_FOUND && (mode & O_CREAT)){
+			r = fsipc_create(path, fd);
+			if(r<0) return r;
+			r = fsipc_open(path, mode, fd);
+			if(r < 0) return r;
+		}
+		else return r;
+	} 
 
 	// Step 3: Set the start address storing the file's content. Set size and fileid correctly.
 	// Hint: Use fd2data to get the start address.
@@ -56,7 +63,9 @@ open(const char *path, int mode)
 	ffd = fd;//????
 	size = ffd->f_file.f_size;
 	fileid = ffd->f_fileid;
-
+	if(mode & O_APPEND) {
+		fd->fd_offset = size;
+	}
 	// Step 5: Return the number of file descriptor.
 	for(i=0;i<size;i+=BY2PG){
 		r = syscall_mem_alloc(0, va+i, PTE_V|PTE_R);//为什么不是根据mode来判断是否PTE_R呢？
