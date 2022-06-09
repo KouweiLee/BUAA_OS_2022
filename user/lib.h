@@ -110,7 +110,7 @@ int	fsipc_dirty(u_int, u_int);
 int	fsipc_remove(const char *);
 int	fsipc_sync(void);
 int	fsipc_incref(u_int);
-
+int fsipc_create(char *);
 // fd.c
 int	close(int fd);
 int	read(int fd, void *buf, u_int nbytes);

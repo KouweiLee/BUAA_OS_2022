@@ -122,7 +122,6 @@ serve_open(u_int envid, struct Fsreq_open *rq)
 		return ;
 	}
 
-	writef("hellohere\n");
 	// Save the file pointer.
 	o->o_file = f;
 
@@ -271,6 +270,7 @@ serve(void)
 		switch (req) {
 			case FSREQ_CREATE:
 				serve_create(whom, (struct Fsreq_create *)REQVA);
+				break;
 			case FSREQ_OPEN:
 				serve_open(whom, (struct Fsreq_open *)REQVA);
 				break;
