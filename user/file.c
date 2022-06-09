@@ -42,12 +42,10 @@ open(const char *path, int mode)
 	// Hint: Please use fd_alloc.
 	if((r = fd_alloc(&fd)) < 0) 
 		return r;
-	//if(mode & O_CREAT) fsipc_create(path);	
 	// Step 2: Get the file descriptor of the file to open.
 	// Hint: Read fsipc.c, and choose a function.
 	if((r = fsipc_open(path, mode, fd)) < 0){
 		if( r == -E_NOT_FOUND && (mode & O_CREAT)){
-			//writef("in1\n");
 			r = fsipc_create(path);
 			if(r<0) return r;
 			r = fsipc_open(path, mode, fd);
