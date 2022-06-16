@@ -175,7 +175,7 @@ write_block(u_int blockno)
 	// Step2: write data to IDE disk. (using ide_write, and the diskno is 0)
 	va = diskaddr(blockno);
 	ide_write(0, blockno * SECT2BLK, (void *)va, SECT2BLK);
-	syscall_mem_map(0, va, 0, va, (PTE_V | PTE_R | PTE_LIBRARY));
+	syscall_mem_map(0, va, 0, va, (PTE_V | PTE_R ));
 }
 
 // Overview:
