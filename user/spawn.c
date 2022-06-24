@@ -175,7 +175,7 @@ int usr_load_elf(int fd, Elf32_Phdr *ph, int child_envid)
 	}
 	return 0;
 }
-/*
+
 int spawn(char *prog, char **argv)
 {
 	u_char elfbuf[512];
@@ -282,7 +282,7 @@ int spawn(char *prog, char **argv)
 	return child_envid;		
 
 }
-*/
+/*
 int spawn(char *prog, char **argv)
 {
 	u_char elfbuf[512];
@@ -410,7 +410,7 @@ int spawn(char *prog, char **argv)
 	}
 	return child_envid;
 }
-
+*/
 int
 spawnl(char *prog, char *args, ...)
 {
