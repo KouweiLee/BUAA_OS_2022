@@ -170,9 +170,9 @@ ELFMAG3	readelf/kerelf.h	94;"	d
 END	include/asm-mips3k/asm.h	35;"	d
 END	include/asm/asm.h	35;"	d
 ENVX	include/env.h	13;"	d
-ENV_CREATE	include/env.h	76;"	d
-ENV_CREATE2	include/env.h	64;"	d
-ENV_CREATE_PRIORITY	include/env.h	69;"	d
+ENV_CREATE	include/env.h	89;"	d
+ENV_CREATE2	include/env.h	77;"	d
+ENV_CREATE_PRIORITY	include/env.h	82;"	d
 ENV_FREE	include/env.h	17;"	d
 ENV_NOT_RUNNABLE	include/env.h	19;"	d
 ENV_RUNNABLE	include/env.h	18;"	d
@@ -460,6 +460,7 @@ T_SEGNP	include/trap.h	16;"	d
 T_STACK	include/trap.h	17;"	d
 T_SYSCALL	include/trap.h	28;"	d
 T_TSS	include/trap.h	15;"	d
+Tcb	include/env.h	/^struct Tcb {$/;"	s
 Trapframe	include/trap.h	/^struct Trapframe { \/\/lr:need to be modified(reference to linux pt_regs) TODO$/;"	s
 UENVS	include/mmu.h	98;"	d
 ULIM	include/mmu.h	94;"	d
@@ -540,6 +541,7 @@ cp0_cause	include/trap.h	/^	unsigned long cp0_cause;$/;"	m	struct:Trapframe
 cp0_epc	include/trap.h	/^	unsigned long cp0_epc;$/;"	m	struct:Trapframe
 cp0_status	include/trap.h	/^	unsigned long cp0_status;$/;"	m	struct:Trapframe
 curenv	lib/env.c	/^struct Env *curenv = NULL;            \/\/ the current env$/;"	v	typeref:struct:Env
+curtcb	lib/env.c	/^struct Tcb *curtcb = NULL;$/;"	v	typeref:struct:Tcb
 delay	boot/start.S	/^delay:$/;"	l
 dev_close	user/fd.h	/^	int (*dev_close)(struct Fd *);$/;"	m	struct:Dev
 dev_id	user/fd.h	/^	int dev_id;$/;"	m	struct:Dev
@@ -888,6 +890,14 @@ t8	include/asm-mips3k/regdef.h	39;"	d
 t8	include/asm/regdef.h	39;"	d
 t9	include/asm-mips3k/regdef.h	40;"	d
 t9	include/asm/regdef.h	40;"	d
+tcb_id	include/env.h	/^	u_int tcb_id;$/;"	m	struct:Tcb
+tcb_joined_link	include/env.h	/^	LIST_ENTRY(Tcb) tcb_joined_link;$/;"	m	struct:Tcb
+tcb_joined_list	include/env.h	/^	struct Tcb_joined_list tcb_joined_list;$/;"	m	struct:Tcb	typeref:struct:Tcb::Tcb_joined_list
+tcb_pri	include/env.h	/^	u_int tcb_pri;$/;"	m	struct:Tcb
+tcb_sched_link	include/env.h	/^	LIST_ENTRY(Tcb) tcb_sched_link;$/;"	m	struct:Tcb
+tcb_sched_list	lib/env.c	/^struct Tcb_list tcb_sched_list[2];$/;"	v	typeref:struct:Tcb_list
+tcb_status	include/env.h	/^	u_int tcb_status;$/;"	m	struct:Tcb
+tcb_tf	include/env.h	/^	struct Trapframe tcb_tf;$/;"	m	struct:Tcb	typeref:struct:Tcb::Trapframe
 theFatalMsg	lib/print.c	/^static const char theFatalMsg[] = "fatal error in lp_Print!";$/;"	v	file:
 theFatalMsg	lib/testprint.c	/^static const char theFatalMsg[] = "fatal error in lp_Print!";$/;"	v	file:
 timer_irq	lib/genex.S	/^timer_irq:$/;"	l
