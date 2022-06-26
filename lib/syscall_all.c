@@ -396,3 +396,91 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 	return 0;
 }
 
+int sys_thread_alloc(void)
+{
+	int r;
+	struct Tcb *t;
+
+	if (curenv)
+		r = thread_alloc(curenv, &t);
+    else
+        r = -E_BAD_ENV;
+	if(r<0) return r;
+    t->tcb_pri = curenv->env_threads[0].tcb_pri;
+	t->tcb_status = ENV_NOT_RUNNABLE;
+	t->tcb_tf.regs[2] = 0;
+	t->tcb_tf.pc = t->tcb_tf.cp0_epc;
+	return t->thread_id;
+
+}
+
+int sys_set_thread_status(int sysno, u_int threadid, u_int status)
+{
+	struct Tcb *t;
+	int r;
+	if (status != ENV_RUNNABLE && status != ENV_NOT_RUNNABLE && status != ENV_FREE)
+		return -E_INVAL;
+	r = threadid2tcb(threadid,&t);
+	if (r < 0)
+		return r;
+	if ((status == ENV_RUNNABLE)&&(t->tcb_status != ENV_RUNNABLE)) {
+		LIST_INSERT_TAIL(&tcb_sched_list[0] , t, tcb_sched_link);
+	} else if(t->tcb_status == ENV_RUNNABLE && status != ENV_RUNNABLE) {
+		LIST_REMOVE(t,tcb_sched_link);
+	}
+	t->tcb_status = status;
+	return 0;
+}
+
+int sys_thread_destroy(int sysno, u_int threadid)
+{
+    int r;
+    struct Tcb *t;
+    if ((r = threadid2tcb(threadid,&t)) < 0) {
+        return r;
+    }
+    if (t->tcb_status == ENV_FREE) {
+        return -E_INVAL;
+    }
+    struct Tcb *joinedtcb = t->tcb_joinedtcb;
+    if(joinedtcb != 0){
+        *(joinedtcb->tcb_join_value_ptr) = t->tcb_exit_ptr;
+        sys_set_thread_status(0,tmp->thread_id,ENV_RUNNABLE);
+    }
+    printf("[%08x] destroying tcb %08x\n", curenv->env_id, t->thread_id);
+    thread_destroy(t);
+    return 0;
+}
+
+int sys_thread_join(int sysno, u_int threadid, void **value_ptr)
+{
+    struct Tcb *t;
+    int r;
+    r = threadid2tcb(threadid,&t);
+    if (r < 0)
+        return r;
+    if (t->tcb_detach || t->tcb_joinedtcb != 0) {
+        return -E_INVAL;
+    }
+    if (t->tcb_status == ENV_FREE) {
+        if (value_ptr != 0 && t->tcb_exit_ptr != 0) {//tcb_exit_ptr为0表示
+            *value_ptr = t->tcb_exit_ptr;
+            t->tcb_exit_ptr = 0;
+        }
+        return 0;
+    }
+    if(curtcb->tcb_joinedtcb == t){//造成死锁
+        return -E_BAD_TCB;
+    }
+	t->tcb_joinedtcb = curtcb;
+    //???这里可能有问题
+    curtcb->tcb_join_value_ptr = value_ptr;
+    sys_set_thread_status(0,curtcb->tcb_id,ENV_NOT_RUNNABLE);
+    struct Trapframe *trap = (struct Trapframe *)(KERNEL_SP - sizeof(struct Trapframe));
+    trap->regs[2] = 0;
+    trap->pc = trap->cp0_epc;
+    sys_yield();
+    return 0;
+}
+
+

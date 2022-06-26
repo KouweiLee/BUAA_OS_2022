@@ -22,7 +22,30 @@ extern char *KERNEL_SP;
 
 static u_int asid_bitmap[2] = {0}; // 64
 
+void thread_destroy(struct Tcb *t) {
+	if (t->tcb_status == ENV_RUNNABLE)
+		LIST_REMOVE(t,tcb_sched_link);
+	thread_free(t);
+	if (curtcb == t) {
+		curtcb = NULL;
+		bcopy((void *)KERNEL_SP - sizeof(struct Trapframe),
+			(void *)TIMESTACK - sizeof(struct Trapframe),//???
+			sizeof(struct Trapframe));
+		printf("i am thread, i am killed ... \n");
+		sched_yield();
+	}
+}
 
+void thread_free(struct Tcb *t)
+{
+	struct Env *e = ROUNDDOWN(t,BY2PG);
+	printf("[%08x] free tcb %08x\n", e->env_id, t->thread_id);
+	--e->env_thread_count;
+	if (e->env_thread_count <= 0) {
+		env_free(e);
+	}
+	t->tcb_status = ENV_FREE;
+}
 /* Overview:
  *  This function is to allocate an unused ASID
  *
@@ -224,22 +247,33 @@ env_setup_vm(struct Env *e)
     return 0;
 }
 
-int thread_alloc(struct Env *e, struct Tcb **new){
-	if (e->env_thread_count >= THREAD_MAX)
-		return -E_THREAD_MAX;
-	u_int i = 0;
-	for(;i<THREAD_MAX;i++){
-		if(e->env_threads[i].tcb_status == ENV_FREE)
-			break;
-	}
-	if(i == THREAD_MAX)
-		return -E_THREAD_MAX;
-	++(e->env_thread_count);
-	struct Tcb *t = &e->env_threads[i];
-	t->tcb_id = mktcbid(t, i);
-	t->tcb_status = ENV_RUNNABLE;
+int thread_alloc(struct Env *e, struct Tcb **new) {
+    if (e->env_thread_count >= THREAD_MAX)
+        return -E_THREAD_MAX;
+    u_int i;
+    for(i = 0;i < THREAD_MAX; i++){
+        if(e->env_threads[i].tcb_status == ENV_FREE)
+            break;
+    }
+    if(i == THREAD_MAX)
+        return -E_THREAD_MAX;
+    ++(e->env_thread_count);
+    struct Tcb *t = &e->env_threads[i];
+    printf("thread id is 2'b%b\n", t->thread_id);
+    t->tcb_id = mktcbid(t, i);
+    t->tcb_status = ENV_RUNNABLE;
 
-	panic("thread_alloc not implemented!\n");
+	t->tcb_tf.cp0_status = 0x1000100c;
+	t->tcb_tf.regs[29] = USTACKTOP - 4*BY2PG*(t->thread_id & 0x7);//栈大小为16KB
+	t->tcb_cancelstate = PTHREAD_CANCEL_ENABLE;
+	t->tcb_canceltype = PTHREAD_CANCEL_DEFERRED;
+	t->tcb_canceled = 0;
+    t->tcb_exit_ptr = (void *)0;
+	
+	t->tcb_detach = 0;
+	t->tcb_joinedtcb = 0;
+	*new = t;
+	return 0;
 }
 
 /* Overview:
@@ -262,38 +296,38 @@ int thread_alloc(struct Env *e, struct Tcb **new){
  *      (the value of PC should NOT be set in env_alloc)
  */
 /*** exercise 3.5 ***/
-int
-env_alloc(struct Env **new, u_int parent_id)
+int env_alloc(struct Env **new, u_int parent_id)
 {
     int r;
     struct Env *e;
-	struct Tcb *t;
+    struct Tcb *t;
     /* Step 1: Get a new Env from env_free_list*/
-	if(LIST_EMPTY(&env_free_list)){
-		*new = NULL;
-		return -E_NO_FREE_ENV;
-	}
-	e = LIST_FIRST(&env_free_list);
-	
+    if(LIST_EMPTY(&env_free_list)){
+        *new = NULL;
+        return -E_NO_FREE_ENV;
+    }
+    e = LIST_FIRST(&env_free_list);
+
     /* Step 2: Call a certain function (has been completed just now) to init kernel memory layout for this new Env.
-     *The function mainly maps the kernel address to this new Env address. */
-	env_setup_vm(e);
+*The function mainly maps the kernel address to this new Env address. */
+    env_setup_vm(e);
 
     /* Step 3: Initialize every field of new Env with appropriate values.*/
-	e->env_id = mkenvid(e);
-	e->env_parent_id = parent_id;
-
-	if((r = thread_alloc(e, &t)) < 0)
-		return r;
+    e->env_id = mkenvid(e);
+    e->env_parent_id = parent_id;
+	e->env_thread_count = 0;
+    if((r = thread_alloc(e, &t)) < 0)
+        return r;
     /* Step 4: Focus on initializing the sp register and cp0_status of env_tf field, located at this new Env. */
     t->tcb_tf.cp0_status = 0x1000100c;
-	t->tcb_tf.regs[29] = USTACKTOP;
+    //t->tcb_tf.regs[29] = USTACKTOP;
 
     /* Step 5: Remove the new Env from env_free_list. */
-	LIST_REMOVE(e, env_link);
-	*new = e;
-	return 0;
-}
+    LIST_REMOVE(e, env_link);
+    *new = e;
+    return 0;
+}             
+
 
 /* Overview:
  *   This is a call back function for kernel's elf loader.

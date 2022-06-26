@@ -14,6 +14,12 @@
 #define GET_ENV_ASID(envid) (((envid)>> 11)<<6)
 
 //for threads
+//for pthread_cancel
+#define PTHREAD_CANCEL_DISABLE 0
+#define PTHREAD_CANCEL_ENABLE 1
+#define PTHREAD_CANCEL_DEFERRED 0
+#define PTHREAD_CANCEL_ASYNCHRONOUS 1
+
 #define THREAD_MAX 8
 #define TCB2ENV(t) ROUNDDOWN(t, BY2PG)
 // Values of env_status in struct Env
@@ -21,30 +27,40 @@
 #define ENV_RUNNABLE		1
 #define ENV_NOT_RUNNABLE	2
 struct Tcb {
+	// basic information
 	struct Trapframe tcb_tf;
 	u_int tcb_id;
 	u_int tcb_status;
 	u_int tcb_pri;
 	LIST_ENTRY(Tcb) tcb_sched_link;
+    
+	// pthread_join information
+	struct Tcb* tcb_joinedtcb;
+	void **tcb_join_value_ptr;//join的进程保存
+	u_int tcb_detach;
 
-	// pthread_join
-	LIST_ENTRY(Tcb) tcb_joined_link;
-	struct Tcb_list tcb_joined_list;
-	
-}
+	// pthread_exit information
+	void *tcb_exit_ptr;//保存退出的值，如果是正常退出，则ptr为0
+	//int tcb_exit_value;为了保证结果正确性，注释掉这条语句
+
+	// pthread_cancel information
+	int tcb_cancelstate;
+	int tcb_canceltype;
+	u_int tcb_canceled;//是否收到cancel信号
+
+	// keep bytes
+	//u_int tcb_nop[10];按最终需要分配
+};
 
 struct Env {
-//	struct Trapframe env_tf;        // Saved registers
 	LIST_ENTRY(Env) env_link;       // Free list
 	u_int env_id;                   // Unique environment identifier
 	u_int env_parent_id;            // env_id of this env's parent
-//	u_int env_status;               // Status of the environment
 	Pde  *env_pgdir;                // Kernel virtual address of page dir
 	u_int env_cr3;
-//	LIST_ENTRY(Env) env_sched_link;
-//    u_int env_pri;
-//
+
 	// Lab 4 IPC
+	u_int env_ipc_waiting_thread_no;
 	u_int env_ipc_value;            // data value sent to us 
 	u_int env_ipc_from;             // envid of the sender  
 	u_int env_ipc_recving;          // env is blocked receiving
@@ -57,7 +73,15 @@ struct Env {
 
 	// Lab 6 scheduler counts
 	u_int env_runs;			// number of times been env_run'ed
-	u_int env_nop;                  // align to avoid mul instruction
+
+	// Lab 4 challenge
+	u_int env_thread_count;
+
+	// keep bytes
+	//u_int env_nop[496];                  // align to avoid mul instruction
+
+	// Lab 4 challenge
+	struct Tcb env_threads[8];
 };
 
 LIST_HEAD(Env_list, Env);

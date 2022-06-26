@@ -8,6 +8,8 @@
 #define NULL ((void *) 0)
 #endif /* !NULL */
 
+//for thread
+typedef unsigned int 	pthread_t;
 
 typedef unsigned char            u_int8_t;
 typedef short                     int16_t;
