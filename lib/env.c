@@ -74,8 +74,9 @@ u_int mkenvid(struct Env *e) {
     return (asid << (1 + LOG2NENV)) | (1 << LOG2NENV) | idx;
 }
 
-u_int mktcbid(struct Tcb *t){
-	
+u_int mktcbid(struct Tcb *t, u_int thread_no){
+	struct Env *e = TCB2ENV(t);//t在e这页上，而且struct Env大小为1页
+	return ((e->env_id << 3) | (thread_no & 0x7);
 }
 
 /* Overview:
@@ -125,8 +126,23 @@ int envid2env(u_int envid, struct Env **penv, int checkperm)
     *penv = e;
     return 0;
 }
+
 int tcbid2tcb(u_int tcbid, struct Tcb **ptcb){
-	
+	struct Tcb *t;
+	struct Env *e;
+	if(tcbid == 0){
+		*ptcb = curtcb;
+		return 0;
+	}
+
+	e = &envs[ENVX(tcbid>>3)];
+	t = &e->env_threads[tcbid & 0x7];
+	if(t->tcb_status == ENV_FREE || t->tcb_id != tcbid){
+		*ptcb = 0;
+		return -E_BAD_ENV;
+	}
+	*ptcb = t;
+	return 0;
 }
 
 /* Overview:
@@ -211,6 +227,18 @@ env_setup_vm(struct Env *e)
 int thread_alloc(struct Env *e, struct Tcb **new){
 	if (e->env_thread_count >= THREAD_MAX)
 		return -E_THREAD_MAX;
+	u_int i = 0;
+	for(;i<THREAD_MAX;i++){
+		if(e->env_threads[i].tcb_status == ENV_FREE)
+			break;
+	}
+	if(i == THREAD_MAX)
+		return -E_THREAD_MAX;
+	++(e->env_thread_count);
+	struct Tcb *t = &e->env_threads[i];
+	t->tcb_id = mktcbid(t, i);
+	t->tcb_status = ENV_RUNNABLE;
+
 	panic("thread_alloc not implemented!\n");
 }
 
@@ -257,7 +285,6 @@ env_alloc(struct Env **new, u_int parent_id)
 
 	if((r = thread_alloc(e, &t)) < 0)
 		return r;
-	t->tcb_status = ENV_RUNNABLE;
     /* Step 4: Focus on initializing the sp register and cp0_status of env_tf field, located at this new Env. */
     t->tcb_tf.cp0_status = 0x1000100c;
 	t->tcb_tf.regs[29] = USTACKTOP;

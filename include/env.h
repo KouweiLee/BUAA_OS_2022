@@ -12,8 +12,10 @@
 #define NENV		(1<<LOG2NENV)
 #define ENVX(envid)	((envid) & (NENV - 1))
 #define GET_ENV_ASID(envid) (((envid)>> 11)<<6)
-#define THREAD_MAX 8
 
+//for threads
+#define THREAD_MAX 8
+#define TCB2ENV(t) ROUNDDOWN(t, BY2PG)
 // Values of env_status in struct Env
 #define ENV_FREE	0
 #define ENV_RUNNABLE		1
@@ -28,6 +30,7 @@ struct Tcb {
 	// pthread_join
 	LIST_ENTRY(Tcb) tcb_joined_link;
 	struct Tcb_list tcb_joined_list;
+	
 }
 
 struct Env {

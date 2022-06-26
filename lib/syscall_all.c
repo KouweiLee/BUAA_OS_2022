@@ -7,7 +7,7 @@
 
 extern char *KERNEL_SP;
 extern struct Env *curenv;
-
+extern struct Tcb *curtcb;
 /* Overview:
  * 	This function is used to print a character on screen.
  *
@@ -55,6 +55,10 @@ u_int sys_getenvid(void)
 	return curenv->env_id;
 }
 
+u_int sys_gettcbid(void)
+{
+	return curtcb->tcb_id;
+}
 /* Overview:
  *	This function enables the current process to give up CPU.
  *

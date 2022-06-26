@@ -170,12 +170,12 @@ ELFMAG3	readelf/kerelf.h	94;"	d
 END	include/asm-mips3k/asm.h	35;"	d
 END	include/asm/asm.h	35;"	d
 ENVX	include/env.h	13;"	d
-ENV_CREATE	include/env.h	89;"	d
-ENV_CREATE2	include/env.h	77;"	d
-ENV_CREATE_PRIORITY	include/env.h	82;"	d
-ENV_FREE	include/env.h	17;"	d
-ENV_NOT_RUNNABLE	include/env.h	19;"	d
-ENV_RUNNABLE	include/env.h	18;"	d
+ENV_CREATE	include/env.h	92;"	d
+ENV_CREATE2	include/env.h	80;"	d
+ENV_CREATE_PRIORITY	include/env.h	85;"	d
+ENV_FREE	include/env.h	20;"	d
+ENV_NOT_RUNNABLE	include/env.h	22;"	d
+ENV_RUNNABLE	include/env.h	21;"	d
 EXPORT	include/asm/asm.h	39;"	d
 E_BAD_ENV	include/error.h	8;"	d
 E_BAD_ENV	include/mmu.h	109;"	d
@@ -199,6 +199,7 @@ E_NO_FREE_ENV	include/error.h	12;"	d
 E_NO_FREE_ENV	include/mmu.h	113;"	d
 E_NO_MEM	include/error.h	11;"	d
 E_NO_MEM	include/mmu.h	112;"	d
+E_THREAD_MAX	include/error.h	23;"	d
 E_UNSPECIFIED	include/error.h	7;"	d
 E_UNSPECIFIED	include/mmu.h	108;"	d
 Elf32_Addr	include/kerelf.h	/^typedef uint32_t Elf32_Addr;$/;"	t
@@ -398,6 +399,7 @@ Stat	user/fd.h	/^struct Stat {$/;"	s
 Super	include/fs.h	/^struct Super {$/;"	s
 TAILQ_ENTRY	include/queue.h	194;"	d
 TAILQ_HEAD	include/queue.h	188;"	d
+TCB2ENV	include/env.h	18;"	d
 TESTMACHINE_CONS_H	drivers/gxconsole/dev_cons.h	2;"	d
 TF_BADVADDR	include/trap.h	102;"	d
 TF_CAUSE	include/trap.h	103;"	d
@@ -439,6 +441,7 @@ TF_REG8	include/trap.h	69;"	d
 TF_REG9	include/trap.h	70;"	d
 TF_SIZE	include/trap.h	109;"	d
 TF_STATUS	include/trap.h	97;"	d
+THREAD_MAX	include/env.h	17;"	d
 TIMESTACK	include/mmu.h	102;"	d
 TRUP	include/mmu.h	167;"	d
 T_ALIGN	include/trap.h	22;"	d
@@ -602,14 +605,10 @@ env_nop	include/env.h	/^	u_int env_nop;                  \/\/ align to avoid mul
 env_parent_id	include/env.h	/^	u_int env_parent_id;            \/\/ env_id of this env's parent$/;"	m	struct:Env
 env_pgdir	include/env.h	/^	Pde  *env_pgdir;                \/\/ Kernel virtual address of page dir$/;"	m	struct:Env
 env_pgfault_handler	include/env.h	/^	u_int env_pgfault_handler;      \/\/ page fault state$/;"	m	struct:Env
-env_pri	include/env.h	/^        u_int env_pri;$/;"	m	struct:Env
-env_run	lib/env.c	/^env_run(struct Env *e)$/;"	f
+env_run	lib/env.c	/^env_run(struct Tcb *t)$/;"	f
 env_runs	include/env.h	/^	u_int env_runs;			\/\/ number of times been env_run'ed$/;"	m	struct:Env
-env_sched_link	include/env.h	/^	LIST_ENTRY(Env) env_sched_link;$/;"	m	struct:Env
 env_sched_list	lib/env.c	/^struct Env_list env_sched_list[2];      \/\/ Runnable list$/;"	v	typeref:struct:Env_list
 env_setup_vm	lib/env.c	/^env_setup_vm(struct Env *e)$/;"	f	file:
-env_status	include/env.h	/^	u_int env_status;               \/\/ Status of the environment$/;"	m	struct:Env
-env_tf	include/env.h	/^	struct Trapframe env_tf;        \/\/ Saved registers$/;"	m	struct:Env	typeref:struct:Env::Trapframe
 env_xstacktop	include/env.h	/^	u_int env_xstacktop;            \/\/ top of exception stack$/;"	m	struct:Env
 envid2env	lib/env.c	/^int envid2env(u_int envid, struct Env **penv, int checkperm)$/;"	f
 envs	lib/env.c	/^struct Env *envs = NULL;        \/\/ All environments$/;"	v	typeref:struct:Env
@@ -691,6 +690,7 @@ mips_detect_memory	mm/pmap.c	/^void mips_detect_memory()$/;"	f
 mips_init	init/init.c	/^void mips_init() {$/;"	f
 mips_vm_init	mm/pmap.c	/^void mips_vm_init()$/;"	f
 mkenvid	lib/env.c	/^u_int mkenvid(struct Env *e) {$/;"	f
+mktcbid	lib/env.c	/^u_int mktcbid(struct Tcb *t, u_int thread_no){$/;"	f
 mm_dir	Makefile	/^mm_dir		  := mm$/;"	m
 modules	Makefile	/^modules		  := boot drivers init lib mm user$/;"	m
 myoutput	lib/printf.c	/^static void myoutput(void *arg, char *s, int l)$/;"	f	file:
@@ -892,14 +892,16 @@ t9	include/asm-mips3k/regdef.h	40;"	d
 t9	include/asm/regdef.h	40;"	d
 tcb_id	include/env.h	/^	u_int tcb_id;$/;"	m	struct:Tcb
 tcb_joined_link	include/env.h	/^	LIST_ENTRY(Tcb) tcb_joined_link;$/;"	m	struct:Tcb
-tcb_joined_list	include/env.h	/^	struct Tcb_joined_list tcb_joined_list;$/;"	m	struct:Tcb	typeref:struct:Tcb::Tcb_joined_list
+tcb_joined_list	include/env.h	/^	struct Tcb_list tcb_joined_list;$/;"	m	struct:Tcb	typeref:struct:Tcb::Tcb_list
 tcb_pri	include/env.h	/^	u_int tcb_pri;$/;"	m	struct:Tcb
 tcb_sched_link	include/env.h	/^	LIST_ENTRY(Tcb) tcb_sched_link;$/;"	m	struct:Tcb
 tcb_sched_list	lib/env.c	/^struct Tcb_list tcb_sched_list[2];$/;"	v	typeref:struct:Tcb_list
 tcb_status	include/env.h	/^	u_int tcb_status;$/;"	m	struct:Tcb
 tcb_tf	include/env.h	/^	struct Trapframe tcb_tf;$/;"	m	struct:Tcb	typeref:struct:Tcb::Trapframe
+tcbid2tcb	lib/env.c	/^int tcbid2tcb(u_int tcbid, struct Tcb **ptcb){$/;"	f
 theFatalMsg	lib/print.c	/^static const char theFatalMsg[] = "fatal error in lp_Print!";$/;"	v	file:
 theFatalMsg	lib/testprint.c	/^static const char theFatalMsg[] = "fatal error in lp_Print!";$/;"	v	file:
+thread_alloc	lib/env.c	/^int thread_alloc(struct Env *e, struct Tcb **new){$/;"	f
 timer_irq	lib/genex.S	/^timer_irq:$/;"	l
 tlb_invalidate	mm/pmap.c	/^void tlb_invalidate(Pde *pgdir, u_long va)$/;"	f
 tlbra	boot/start.S	/^tlbra:$/;"	l
