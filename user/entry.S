@@ -34,7 +34,10 @@ vpd:
 	.globl __pgfault_handler
 	__pgfault_handler:
 	.word 0
-
+	
+	.globl pthread_cancel_value 
+pthread_cancel_value:
+	.word 99
 
 	.extern libmain
 

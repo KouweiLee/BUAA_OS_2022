@@ -4,7 +4,7 @@
 #include <printf.h>
 #include <pmap.h>
 #include <sched.h>
-
+#include <error.h>
 extern char *KERNEL_SP;
 extern struct Env *curenv;
 extern struct Tcb *curtcb;
@@ -55,7 +55,7 @@ u_int sys_getenvid(void)
 	return curenv->env_id;
 }
 
-u_int sys_gettcbid(void)
+u_int sys_getthreadid(void)
 {
 	return curtcb->tcb_id;
 }
@@ -251,6 +251,30 @@ int sys_env_alloc(void)
 	// Your code here.
 	int r;
 	struct Env *e;
+
+	if (curenv)
+		r = env_alloc(&e,curenv->env_id);
+	else
+		r = env_alloc(&e,0);
+	if (r < 0) return r;
+
+	if (curenv)
+		e->env_threads[0].tcb_pri = curenv->env_threads[0].tcb_pri;
+	else
+		e->env_threads[0].tcb_pri = 1;
+
+	e->env_threads[0].tcb_status = ENV_NOT_RUNNABLE;
+	bcopy(KERNEL_SP-sizeof(struct Trapframe),&(e->env_threads[0].tcb_tf),sizeof(struct Trapframe));
+	e->env_threads[0].tcb_tf.regs[2] = 0;
+	e->env_threads[0].tcb_tf.pc = e->env_threads[0].tcb_tf.cp0_epc;
+	return e->env_id;
+}
+/*
+int sys_env_alloc(void)
+{
+	// Your code here.
+	int r;
+	struct Env *e;
 	r = env_alloc(&e, curenv->env_id);
     if(r < 0) return r;
     bcopy((void *)KERNEL_SP - sizeof(struct Trapframe), 
@@ -265,7 +289,7 @@ int sys_env_alloc(void)
 	return e->env_id;
 	//	panic("sys_env_alloc not implemented");
 }
-
+*/
 /* Overview:
  * 	Set envid's env_status to status.
  *
@@ -283,6 +307,28 @@ int sys_set_env_status(int sysno, u_int envid, u_int status)
 {
 	// Your code here.
 	struct Env *env;
+	struct Tcb *tcb;
+	int ret;
+
+	if (status != ENV_RUNNABLE && status != ENV_NOT_RUNNABLE && status != ENV_FREE)
+		return -E_INVAL;
+	ret = envid2env(envid,&env,0);
+	tcb = &env->env_threads[0];
+	if (ret < 0)
+		return ret;
+	if (status == ENV_RUNNABLE && tcb->tcb_status != ENV_RUNNABLE) {
+		LIST_INSERT_TAIL(&tcb_sched_list[0],tcb,tcb_sched_link);
+	} else if(status != ENV_RUNNABLE && tcb->tcb_status == ENV_RUNNABLE) {
+		LIST_REMOVE(tcb,tcb_sched_link);
+	}
+	env->env_threads[0].tcb_status = status;
+	return 0;
+}
+/*
+int sys_set_env_status(int sysno, u_int envid, u_int status)
+{
+	// Your code here.
+	struct Env *env;
 	int ret;
 	if(status != ENV_FREE && status != ENV_RUNNABLE && status != ENV_NOT_RUNNABLE)
 		return -E_INVAL;
@@ -295,7 +341,7 @@ int sys_set_env_status(int sysno, u_int envid, u_int status)
 	return 0;
 	//	panic("sys_env_set_status not implemented");
 }
-
+*/
 /* Overview:
  * 	Set envid's trap frame to tf.
  *
@@ -345,10 +391,11 @@ void sys_panic(int sysno, char *msg)
 /*** exercise 4.7 ***/
 void sys_ipc_recv(int sysno, u_int dstva)
 {
-	if(dstva >= UTOP) return ;
+	if (dstva >= UTOP)	return;
 	curenv->env_ipc_recving = 1;
+	curenv->env_ipc_waiting_thread_no = TCBX(curtcb->tcb_id);
 	curenv->env_ipc_dstva = dstva;
-	curenv->env_status = ENV_NOT_RUNNABLE;
+	curtcb->tcb_status = ENV_NOT_RUNNABLE;
 	sys_yield();
 }
 
@@ -377,16 +424,18 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 	int r;
 	struct Env *e;
 	struct Page *p;
+	struct Tcb *t;
 	if(srcva >= UTOP) return -E_INVAL;
 	r = envid2env(envid, &e, 0);
 	if(r<0) return r;
 	if(e->env_ipc_recving == 0) return -E_IPC_NOT_RECV;
 
+	t = &e->env_threads[e->env_ipc_waiting_thread_no];//e为接收方
 	e->env_ipc_recving = 0;
 	e->env_ipc_from = curenv->env_id;
 	e->env_ipc_value = value;
 	e->env_ipc_perm = perm;
-	e->env_status = ENV_RUNNABLE;
+	t->tcb_status = ENV_RUNNABLE;
 	if(srcva != 0){
 		p = page_lookup(curenv->env_pgdir, srcva, NULL);
 		if(p == 0) return -E_INVAL;
@@ -410,7 +459,7 @@ int sys_thread_alloc(void)
 	t->tcb_status = ENV_NOT_RUNNABLE;
 	t->tcb_tf.regs[2] = 0;
 	t->tcb_tf.pc = t->tcb_tf.cp0_epc;
-	return t->thread_id;
+	return t->tcb_id;
 
 }
 
@@ -423,11 +472,13 @@ int sys_set_thread_status(int sysno, u_int threadid, u_int status)
 	r = threadid2tcb(threadid,&t);
 	if (r < 0)
 		return r;
-	if ((status == ENV_RUNNABLE)&&(t->tcb_status != ENV_RUNNABLE)) {
+	
+	if (status == ENV_RUNNABLE && t->tcb_status != ENV_RUNNABLE) {
 		LIST_INSERT_TAIL(&tcb_sched_list[0] , t, tcb_sched_link);
-	} else if(t->tcb_status == ENV_RUNNABLE && status != ENV_RUNNABLE) {
+	} else if(status != ENV_RUNNABLE && t->tcb_status == ENV_RUNNABLE) {
 		LIST_REMOVE(t,tcb_sched_link);
 	}
+	
 	t->tcb_status = status;
 	return 0;
 }
@@ -442,12 +493,21 @@ int sys_thread_destroy(int sysno, u_int threadid)
     if (t->tcb_status == ENV_FREE) {
         return -E_INVAL;
     }
+	/*
+	if( == 0){
+		struct Env *e = &envs[ENVX()];
+		int i;
+		for(i=1;i<THREAD_MAX;i++){
+			sys_thread_destroy(0, e->env_threads[i].tcb_id);
+		}
+	}
+	*/
     struct Tcb *joinedtcb = t->tcb_joinedtcb;
     if(joinedtcb != 0){
         *(joinedtcb->tcb_join_value_ptr) = t->tcb_exit_ptr;
-        sys_set_thread_status(0,tmp->thread_id,ENV_RUNNABLE);
+        sys_set_thread_status(0,joinedtcb->tcb_id,ENV_RUNNABLE);
     }
-    printf("[%08x] destroying tcb %08x\n", curenv->env_id, t->thread_id);
+    printf("[%08x] destroying tcb %08x\n", curenv->env_id, t->tcb_id);
     thread_destroy(t);
     return 0;
 }
@@ -470,7 +530,7 @@ int sys_thread_join(int sysno, u_int threadid, void **value_ptr)
         return 0;
     }
     if(curtcb->tcb_joinedtcb == t){//造成死锁
-        return -E_BAD_TCB;
+        return -E_BAD_TCB;//E_BAD_TCB 
     }
 	t->tcb_joinedtcb = curtcb;
     //???这里可能有问题
@@ -483,4 +543,88 @@ int sys_thread_join(int sysno, u_int threadid, void **value_ptr)
     return 0;
 }
 
+//for sem
+int sys_sem_wait(int sysno, sem_t *sem)
+{
+	if (sem->sem_status == SEM_FREE) {
+		return -E_SEM_ERROR;
+	}
+	int i;
+	if (sem->sem_value > 0) {
+		--sem->sem_value;
+		return 0;
+	}
+	//需要阻塞
+	if (sem->sem_wait_count >= 10) {
+		return -E_SEM_ERROR;
+	}
+	sem->sem_wait_list[sem->sem_head_index] = curtcb;
+	sem->sem_head_index = (sem->sem_head_index + 1) % 10;
+	++sem->sem_wait_count;
+	sys_set_thread_status(0,0,ENV_NOT_RUNNABLE);
+	struct Trapframe *trap = (struct Trapframe *)(KERNEL_SP - sizeof(struct Trapframe));
+	trap->regs[2] = 0;
+	trap->pc = trap->cp0_epc;//由于在handle_sys中执行了epc+4，返回到syscall的下一条指令
+	//printf("wait thread is 0x%x\n",curtcb->thread_id);
+	sys_yield();
+	return -E_SEM_ERROR;
+}
 
+int sys_sem_trywait(int sysno, sem_t *sem)
+{
+	if (sem->sem_status == SEM_FREE) {
+		return -E_SEM_ERROR;
+	}
+	if (sem->sem_value > 0) {
+		--sem->sem_value;
+		return 0;
+	}
+	return -E_SEM_EAGAIN;
+}
+
+int sys_sem_post(int sysno, sem_t *sem)
+{
+	if (sem->sem_status == SEM_FREE) {
+		return -E_SEM_ERROR;
+	}
+	if (sem->sem_value > 0) {
+		++sem->sem_value;
+	} else {
+		if (sem->sem_wait_count == 0) {
+			++sem->sem_value;
+		}
+		else {
+			struct Tcb *t;
+			--sem->sem_wait_count;
+			t = sem->sem_wait_list[sem->sem_tail_index];
+			sem->sem_wait_list[sem->sem_tail_index] = 0;
+			sem->sem_tail_index = (sem->sem_tail_index + 1) % 10;
+			sys_set_thread_status(0,t->tcb_id,ENV_RUNNABLE);
+		}
+	}
+	return 0;
+}
+
+
+int sys_sem_getvalue(int sysno, sem_t *sem, int *valp)
+{
+	if (sem->sem_status == SEM_FREE) {
+		return -E_SEM_ERROR;
+	}
+	if (valp != 0) {
+		*valp = sem->sem_value;
+	}
+	return 0;
+}
+
+int sys_sem_destroy(int sysno,sem_t *sem)
+{
+	if (sem->sem_envid != curenv->env_id && sem->sem_shared == 0) {
+		return -E_SEM_NOTFOUND;
+	}
+	if (sem->sem_status == SEM_FREE) {
+		return 0;
+	}
+	sem->sem_status = SEM_FREE;
+	return 0;
+}

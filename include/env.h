@@ -20,8 +20,12 @@
 #define PTHREAD_CANCEL_DEFERRED 0
 #define PTHREAD_CANCEL_ASYNCHRONOUS 1
 
-#define THREAD_MAX 8
+#define THREAD_MAX 16 
 #define TCB2ENV(t) ROUNDDOWN(t, BY2PG)
+#define TCBX(t) (t & 0xf)
+#define TCBE(t) (t >> 4)
+#define SEM_FREE	0
+#define SEM_VALID	1
 // Values of env_status in struct Env
 #define ENV_FREE	0
 #define ENV_RUNNABLE		1
@@ -49,7 +53,7 @@ struct Tcb {
 	u_int tcb_canceled;//是否收到cancel信号
 
 	// keep bytes
-	//u_int tcb_nop[10];按最终需要分配
+	//u_int tcb_nop[13];//按最终需要分配
 };
 
 struct Env {
@@ -78,17 +82,31 @@ struct Env {
 	u_int env_thread_count;
 
 	// keep bytes
-	//u_int env_nop[496];                  // align to avoid mul instruction
+	u_int env_nop[192];                  // align to avoid mul instruction
 
 	// Lab 4 challenge
-	struct Tcb env_threads[8];
+	struct Tcb env_threads[16];
+};
+
+struct sem {
+	u_int sem_envid;
+	u_int sem_head_index;//循环队列头部指针，新被阻塞的进程从头部入队
+	u_int sem_tail_index;//尾部指针，被释放的进程从尾部出队
+	char sem_name[16];
+	int sem_value;
+	int sem_status;      //有free和valid两种
+	int sem_shared;
+	int sem_wait_count;//阻塞的进程数量
+	struct Tcb *sem_wait_list[10];
 };
 
 LIST_HEAD(Env_list, Env);
 LIST_HEAD(Tcb_list, Tcb);
 extern struct Env *envs;		// All environments
 extern struct Env *curenv;	        // the current env
+extern struct Tcb *curtcb;
 extern struct Env_list env_sched_list[2]; // runnable env list
+extern struct Tcb_list tcb_sched_list[2];
 
 void env_init(void);
 int env_alloc(struct Env **e, u_int parent_id);
@@ -98,8 +116,10 @@ void env_create(u_char *binary, int size);
 void env_destroy(struct Env *e);
 
 int envid2env(u_int envid, struct Env **penv, int checkperm);
-void env_run(struct Env *e);
-
+void env_run(struct Tcb *t);
+//for threads
+int thread_alloc(struct Env *e, struct Tcb **t);
+int threadid2tcb(u_int threadid, struct Tcb **ptcb);
 
 // for the grading script
 #define ENV_CREATE2(x, y) \

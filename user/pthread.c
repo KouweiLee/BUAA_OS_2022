@@ -1,7 +1,8 @@
 #include "lib.h"
 #include <error.h>
 #include <mmu.h>
-
+extern u_int pthread_cancel_value;
+#define PTHREAD_CANCELED (void *)(&pthread_cancel_value)
 int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
                    void * (*start_rountine)(void *), void *arg) {
 	int newthread = syscall_thread_alloc();
@@ -9,8 +10,8 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 		thread = 0;
 		return newthread;
 	}
-	struct Tcb *t = &env->env_threads[newthread & 0x7];
-	//t->tcb_tf.regs[29] = USTACKTOP - 4*BY2PG*newthread;//1个栈16K
+	struct Tcb *t = &env->env_threads[TCBX(newthread)];
+	t->tcb_tf.regs[29] = USTACKTOP - 4*BY2PG*newthread;//1个栈16K
 	t->tcb_tf.pc = start_rountine;
 	t->tcb_tf.regs[29] -= 4;//参数需要在栈中占位
 	t->tcb_tf.regs[4] = arg;
@@ -21,14 +22,14 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 }
 
 void pthread_exit(void *value_ptr) {
-	u_int threadid = syscall_gettcbid();//获取当前线程的id
-	struct Tcb *t = &env->env_threads[threadid&0x7];
+	u_int threadid = syscall_getthreadid();//获取当前线程的id
+	struct Tcb *t = &env->env_threads[TCBX(threadid)];
 	t->tcb_exit_ptr = value_ptr;
 	syscall_thread_destroy(threadid);
 }
 
 int pthread_cancel(pthread_t thread) {
-	struct Tcb *t = &env->env_threads[thread&0x7];
+	struct Tcb *t = &env->env_threads[TCBX(thread)];
 	if (t->tcb_id != thread || t->tcb_status == ENV_FREE) {
 		return -E_BAD_TCB;
 	}
@@ -45,16 +46,16 @@ int pthread_cancel(pthread_t thread) {
 }
 
 u_int pthread_self() {
-	return syscall_gettcbid();
+	return syscall_getthreadid();
 }
 
 int pthread_setcancelstate(int state, int *oldvalue) {
 	u_int threadid = pthread_self();
-	struct Tcb *t = &env->env_threads[threadid&0x7];
+	struct Tcb *t = &env->env_threads[TCBX(threadid)];
 	if ((state != PTHREAD_CANCEL_ENABLE) & (state != PTHREAD_CANCEL_DISABLE)) {
 		return -E_INVAL;
 	}
-	if (t->thread_id != threadid) {
+	if (t->tcb_id != threadid) {
 		return -E_BAD_TCB;
 	}
 	if (oldvalue != 0) {
@@ -66,7 +67,7 @@ int pthread_setcancelstate(int state, int *oldvalue) {
 
 int pthread_setcanceltype(int type, int *oldvalue) {
 	u_int threadid = pthread_self();
-	struct Tcb *t = &env->env_threads[threadid&0x7];
+	struct Tcb *t = &env->env_threads[TCBX(threadid)];
 	if (type != PTHREAD_CANCEL_ASYNCHRONOUS && type != PTHREAD_CANCEL_DEFERRED) {
 		return -E_INVAL;
 	}
@@ -82,13 +83,13 @@ int pthread_setcanceltype(int type, int *oldvalue) {
 
 void pthread_testcancel() {
 	u_int threadid = pthread_self();
-	struct Tcb *t = &env->env_threads[threadid&0x7];
+	struct Tcb *t = &env->env_threads[TCBX(threadid)];
 	if (t->tcb_id != threadid) {
 		user_panic("panic at pthread_testcancel!\n");
 	}
 	if (t->tcb_canceled && t->tcb_cancelstate == PTHREAD_CANCEL_ENABLE) {
 		t->tcb_exit_ptr = PTHREAD_CANCELED;
-		syscall_thread_destroy(t->thread_id);
+		syscall_thread_destroy(t->tcb_id);
 	}
 }
 
@@ -98,14 +99,14 @@ int pthread_join(pthread_t thread, void **value_ptr) {
 }
 
 int pthread_detach(pthread_t thread) {
-	struct Tcb *t = &env->env_threads[thread&0x7];
+	struct Tcb *t = &env->env_threads[TCBX(thread)];
 	int r;
 	int i;
-	if (t->thread_id != thread) {
+	if (t->tcb_id != thread) {
 		return -E_BAD_TCB;
 	}
 	if (t->tcb_status == ENV_FREE) {
-		u_int sp = USTACKTOP - BY2PG*4*(thread&0x7);
+		u_int sp = USTACKTOP - BY2PG*4*(TCBX(thread));
 		for(i = 1; i <= 4; ++i) {
 			r = syscall_mem_unmap(0,sp-i*BY2PG);
 			if (r < 0)

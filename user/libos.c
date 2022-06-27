@@ -4,7 +4,7 @@
 
 void exit(void)
 {
-	struct Tcb *t = &env->env_threads[syscall_getthreadid()&0x7];
+	struct Tcb *t = &env->env_threads[TCBX(syscall_getthreadid())];
 	t->tcb_exit_ptr = 0;
 	syscall_thread_destroy(0);
 }
@@ -24,7 +24,7 @@ void libmain(int argc, char **argv)
 	env = &envs[envid];
 	int tcbid;
 	tcbid = syscall_getthreadid();
-	tcbid = tcbid & 0x7;
+	tcbid = TCBX(tcbid);
 	tcb = &env->env_threads[tcbid];
 	// call user main routine
 	umain(argc, argv);

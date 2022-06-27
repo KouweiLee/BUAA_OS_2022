@@ -164,6 +164,7 @@ fork(void)
 	if(newenvid == 0){
 		newenvid = syscall_getenvid();
 		env = &envs[ENVX(newenvid)];
+		tcb = &env->env_threads[0];
 		return 0;
 	}
 //father excute this 	

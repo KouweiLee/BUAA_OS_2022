@@ -7,6 +7,9 @@
 
 void mips_init() {
 	printf("init.c:\tmips_init() is called\n");
+	printf("env is %d\n", sizeof(struct Env));
+	printf("tcb is %d\n", sizeof(struct Tcb));
+	printf("trapframe is %d\n", sizeof(struct Trapframe));
 	mips_detect_memory();
 
 	mips_vm_init();
@@ -15,9 +18,13 @@ void mips_init() {
 	env_init();
 //	ENV_CREATE(user_tltest);
 //	ENV_CREATE(user_fktest);
-	ENV_CREATE(user_pingpong);
-
-	//printf("123\n");
+//	ENV_CREATE(user_pingpong);
+//	ENV_CREATE(user_pttest);
+	ENV_CREATE(user_ptexittest);
+	//ENV_CREATE(user_ptcanceltest);
+//	ENV_CREATE(user_ptjointest);
+//	ENV_CREATE(user_semtest);
+//	ENV_CREATE(user_sellertest);
 	trap_init();
 	kclock_init();
 	//printf("123");

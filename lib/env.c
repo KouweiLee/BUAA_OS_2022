@@ -31,7 +31,7 @@ void thread_destroy(struct Tcb *t) {
 		bcopy((void *)KERNEL_SP - sizeof(struct Trapframe),
 			(void *)TIMESTACK - sizeof(struct Trapframe),//???
 			sizeof(struct Trapframe));
-		printf("i am thread, i am killed ... \n");
+		printf("i am thread no.%d, tcbid is %x, i am killed ... \n",TCBX(t->tcb_id), t->tcb_id);
 		sched_yield();
 	}
 }
@@ -39,7 +39,7 @@ void thread_destroy(struct Tcb *t) {
 void thread_free(struct Tcb *t)
 {
 	struct Env *e = ROUNDDOWN(t,BY2PG);
-	printf("[%08x] free tcb %08x\n", e->env_id, t->thread_id);
+	printf("[%08x] free tcb %08x\n", e->env_id, t->tcb_id);
 	--e->env_thread_count;
 	if (e->env_thread_count <= 0) {
 		env_free(e);
@@ -99,7 +99,7 @@ u_int mkenvid(struct Env *e) {
 
 u_int mktcbid(struct Tcb *t, u_int thread_no){
 	struct Env *e = TCB2ENV(t);//t在e这页上，而且struct Env大小为1页
-	return ((e->env_id << 3) | (thread_no & 0x7);
+	return ((e->env_id << 4) | TCBX(thread_no));
 }
 
 /* Overview:
@@ -129,7 +129,7 @@ int envid2env(u_int envid, struct Env **penv, int checkperm)
 
 	e = envs + ENVX(envid);
 	
-    if (e->env_status == ENV_FREE || e->env_id != envid) {
+    if (e->env_id != envid) {
         *penv = 0;
         return -E_BAD_ENV;
     }
@@ -150,7 +150,7 @@ int envid2env(u_int envid, struct Env **penv, int checkperm)
     return 0;
 }
 
-int tcbid2tcb(u_int tcbid, struct Tcb **ptcb){
+int threadid2tcb(u_int tcbid, struct Tcb **ptcb){
 	struct Tcb *t;
 	struct Env *e;
 	if(tcbid == 0){
@@ -158,8 +158,8 @@ int tcbid2tcb(u_int tcbid, struct Tcb **ptcb){
 		return 0;
 	}
 
-	e = &envs[ENVX(tcbid>>3)];
-	t = &e->env_threads[tcbid & 0x7];
+	e = &envs[ENVX(TCBE(tcbid))];
+	t = &e->env_threads[TCBX(tcbid)];
 	if(t->tcb_status == ENV_FREE || t->tcb_id != tcbid){
 		*ptcb = 0;
 		return -E_BAD_ENV;
@@ -259,12 +259,12 @@ int thread_alloc(struct Env *e, struct Tcb **new) {
         return -E_THREAD_MAX;
     ++(e->env_thread_count);
     struct Tcb *t = &e->env_threads[i];
-    printf("thread id is 2'b%b\n", t->thread_id);
     t->tcb_id = mktcbid(t, i);
+    printf("thread id is 2'b%b\n", t->tcb_id);
     t->tcb_status = ENV_RUNNABLE;
 
 	t->tcb_tf.cp0_status = 0x1000100c;
-	t->tcb_tf.regs[29] = USTACKTOP - 4*BY2PG*(t->thread_id & 0x7);//栈大小为16KB
+	t->tcb_tf.regs[29] = USTACKTOP - 4*BY2PG*(TCBX(t->tcb_id));//栈大小为16KB
 	t->tcb_cancelstate = PTHREAD_CANCEL_ENABLE;
 	t->tcb_canceltype = PTHREAD_CANCEL_DEFERRED;
 	t->tcb_canceled = 0;
@@ -608,13 +608,12 @@ env_run(struct Tcb *t)
      */
 	env_pop_tf(&(t->tcb_tf), GET_ENV_ASID(curenv->env_id));
 }
-
+/*
 void env_check()
 {
     struct Env *temp, *pe, *pe0, *pe1, *pe2;
     struct Env_list fl;
     int re = 0;
-    /* should be able to allocate three envs */
     pe0 = 0;
     pe1 = 0;
     pe2 = 0;
@@ -626,15 +625,11 @@ void env_check()
     assert(pe1 && pe1 != pe0);
     assert(pe2 && pe2 != pe1 && pe2 != pe0);
 
-    /* temporarily steal the rest of the free envs */
     fl = env_free_list;
-    /* now this env_free list must be empty! */
     LIST_INIT(&env_free_list);
 
-    /* should be no free memory */
     assert(env_alloc(&pe, 0) == -E_NO_FREE_ENV);
 
-    /* recover env_free_list */
     env_free_list = fl;
 
     printf("pe0->env_id %d\n",pe0->env_id);
@@ -646,7 +641,6 @@ void env_check()
     assert(pe2->env_id == 5122);
     printf("env_init() work well!\n");
 
-    /* check envid2env work well */
     pe2->env_status = ENV_FREE;
     re = envid2env(pe2->env_id, &pe, 0);
 
@@ -664,7 +658,6 @@ void env_check()
     curenv = temp;
     printf("envid2env() work well!\n");
 
-    /* check env_setup_vm() work well */
     printf("pe1->env_pgdir %x\n",pe1->env_pgdir);
     printf("pe1->env_cr3 %x\n",pe1->env_cr3);
 
@@ -675,7 +668,6 @@ void env_check()
     assert(pe2->env_tf.cp0_status == 0x10001004);
     printf("pe2`s sp register %x\n",pe2->env_tf.regs[29]);
 
-    /* free all env allocated in this function */
     LIST_INSERT_HEAD(env_sched_list, pe0, env_sched_link);
     LIST_INSERT_HEAD(env_sched_list, pe1, env_sched_link);
     LIST_INSERT_HEAD(env_sched_list, pe2, env_sched_link);
@@ -686,7 +678,7 @@ void env_check()
 
     printf("env_check() succeeded!\n");
 }
-
+*/
 void load_icode_check() {
     /* check_icode.c from init/init.c */
     extern u_char binary_user_check_icode_start[];

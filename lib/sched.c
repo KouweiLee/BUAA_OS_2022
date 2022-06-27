@@ -8,10 +8,11 @@ void sched_yield(void)
     static int point = 0; // current tcb_sched_list index
     static struct Tcb *t = NULL;
     
+	//printf("exe\n");
     if(count == 0 || t == NULL || t->tcb_status != ENV_RUNNABLE){
         if(t != NULL){//count == 0 || status is not runnable
             LIST_REMOVE(t, tcb_sched_link);
-            if(t->tcb_status != ENV_FREE){
+            if(t->tcb_status == ENV_RUNNABLE){
                 LIST_INSERT_TAIL(&tcb_sched_list[1-point], t, tcb_sched_link);
             }
         }
@@ -23,7 +24,7 @@ void sched_yield(void)
                 LIST_REMOVE(t, tcb_sched_link);
             } else if(t->tcb_status == ENV_NOT_RUNNABLE){
                 LIST_REMOVE(t, tcb_sched_link);
-                LIST_INSERT_TAIL(&tcb_sched_list[1-point], t, tcb_sched_link);
+                //LIST_INSERT_TAIL(&tcb_sched_list[1-point], t, tcb_sched_link);
             } else {
                 count = t->tcb_pri;
                 break;
