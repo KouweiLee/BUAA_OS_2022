@@ -532,8 +532,7 @@ int sys_thread_join(int sysno, u_int threadid, void **value_ptr)
     if(curtcb->tcb_joinedtcb == t){//造成死锁
         return -E_BAD_TCB;//E_BAD_TCB 
     }
-	t->tcb_joinedtcb = curtcb;
-    //???这里可能有问题
+	t->tcb_joinedtcb = curtcb; 
     curtcb->tcb_join_value_ptr = value_ptr;
     sys_set_thread_status(0,curtcb->tcb_id,ENV_NOT_RUNNABLE);
     struct Trapframe *trap = (struct Trapframe *)(KERNEL_SP - sizeof(struct Trapframe));
@@ -559,7 +558,7 @@ int sys_sem_wait(int sysno, sem_t *sem)
 		return -E_SEM_ERROR;
 	}
 	sem->sem_wait_list[sem->sem_head_index] = curtcb;
-	sem->sem_head_index = (sem->sem_head_index + 1) % 10;
+	sem->sem_head_index = (sem->sem_head_index + 1) % SEM_MAXNUM;
 	++sem->sem_wait_count;
 	sys_set_thread_status(0,0,ENV_NOT_RUNNABLE);
 	struct Trapframe *trap = (struct Trapframe *)(KERNEL_SP - sizeof(struct Trapframe));
@@ -598,7 +597,7 @@ int sys_sem_post(int sysno, sem_t *sem)
 			--sem->sem_wait_count;
 			t = sem->sem_wait_list[sem->sem_tail_index];
 			sem->sem_wait_list[sem->sem_tail_index] = 0;
-			sem->sem_tail_index = (sem->sem_tail_index + 1) % 10;
+			sem->sem_tail_index = (sem->sem_tail_index + 1) % SEM_MAXNUM;
 			sys_set_thread_status(0,t->tcb_id,ENV_RUNNABLE);
 		}
 	}

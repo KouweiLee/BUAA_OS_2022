@@ -7,7 +7,7 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
                    void * (*start_rountine)(void *), void *arg) {
 	int newthread = syscall_thread_alloc();
 	if (newthread < 0) {
-		thread = 0;
+		*thread = 0;
 		return newthread;
 	}
 	struct Tcb *t = &env->env_threads[TCBX(newthread)];
@@ -15,7 +15,7 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 	t->tcb_tf.pc = start_rountine;
 	t->tcb_tf.regs[29] -= 4;//参数需要在栈中占位
 	t->tcb_tf.regs[4] = arg;
-	t->tcb_tf.regs[31] = exit;//返回值为exit函数
+	t->tcb_tf.regs[31] = son_exit;//返回son_exit函数
 	syscall_set_thread_status(t->tcb_id,ENV_RUNNABLE);
 	*thread = t->tcb_id;
 	return 0;

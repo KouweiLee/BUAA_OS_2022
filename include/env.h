@@ -24,8 +24,10 @@
 #define TCB2ENV(t) ROUNDDOWN(t, BY2PG)
 #define TCBX(t) (t & 0xf)
 #define TCBE(t) (t >> 4)
+
 #define SEM_FREE	0
 #define SEM_VALID	1
+#define SEM_MAXNUM 16
 // Values of env_status in struct Env
 #define ENV_FREE	0
 #define ENV_RUNNABLE		1

@@ -3,9 +3,15 @@
 int ret = -2;
 void *test(void *arg) {
 	writef("son is begin\n");
-	writef("son threadid is 0x%x\n",syscall_getthreadid());
-	pthread_exit(&ret);
-	writef("son not exit!\n");
+	exit();
+	/*
+	int i;
+	for(i=0; i<10; i++){
+		writef("son is running\n");
+		syscall_yield();
+	}
+	writef("success\n");
+	*/
 }
 
 void umain() {
@@ -18,10 +24,8 @@ void umain() {
 	args[2] = 3;
 	pthread_create(&thread,NULL,test,(void *)args);
 	writef("son is create!\n");
-	
-	while ((int)env->env_threads[TCBX(thread)].tcb_status != ENV_FREE); 
-	writef("\n");
-	writef("son exit ret is %d\n",*((int *)env->env_threads[TCBX(thread)].tcb_exit_ptr));
-	
+	syscall_yield();
+	user_panic("wrong");
+	pthread_exit(NULL);
 }
 

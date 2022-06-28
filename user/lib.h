@@ -11,7 +11,7 @@
 extern void umain();
 extern void libmain();
 extern void exit();
-
+extern void son_exit();
 extern struct Env *env;
 extern struct Tcb *tcb;
 
@@ -157,7 +157,10 @@ int sem_getvalue(sem_t *sem, int *valp);
 #define	O_EXCL		0x0400		/* error if already exists */
 #define O_MKDIR		0x0800		/* create directory, not regular file */
 //for pthread
-
+#define PTHREAD_CANCEL_DISABLE 0
+#define PTHREAD_CANCEL_ENABLE 1
+#define PTHREAD_CANCEL_DEFERRED 0
+#define PTHREAD_CANCEL_ASYNCHRONOUS 1
 
 
 #endif

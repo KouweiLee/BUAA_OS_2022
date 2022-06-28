@@ -1,13 +1,22 @@
 #include "lib.h"
 #include <mmu.h>
 #include <env.h>
+void son_exit(void){
 
-void exit(void)
-{
 	struct Tcb *t = &env->env_threads[TCBX(syscall_getthreadid())];
 	t->tcb_exit_ptr = 0;
 	syscall_thread_destroy(0);
 }
+
+void exit(void)
+{
+	/*struct Tcb *t = &env->env_threads[TCBX(syscall_getthreadid())];
+	t->tcb_exit_ptr = 0;
+	syscall_thread_destroy(0);
+	*/
+	syscall_env_destroy(0);
+}
+
 
 struct Env *env;
 struct Tcb *tcb;

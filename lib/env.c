@@ -39,12 +39,12 @@ void thread_destroy(struct Tcb *t) {
 void thread_free(struct Tcb *t)
 {
 	struct Env *e = ROUNDDOWN(t,BY2PG);
-	printf("[%08x] free tcb %08x\n", e->env_id, t->tcb_id);
+//	printf("[%08x] free tcb %08x\n", e->env_id, t->tcb_id);
 	--e->env_thread_count;
+	t->tcb_status = ENV_FREE;
 	if (e->env_thread_count <= 0) {
 		env_free(e);
 	}
-	t->tcb_status = ENV_FREE;
 }
 /* Overview:
  *  This function is to allocate an unused ASID
@@ -260,7 +260,7 @@ int thread_alloc(struct Env *e, struct Tcb **new) {
     ++(e->env_thread_count);
     struct Tcb *t = &e->env_threads[i];
     t->tcb_id = mktcbid(t, i);
-    printf("thread id is 2'b%b\n", t->tcb_id);
+    printf("thread id is %x\n", t->tcb_id);
     t->tcb_status = ENV_RUNNABLE;
 
 	t->tcb_tf.cp0_status = 0x1000100c;
@@ -538,7 +538,16 @@ env_free(struct Env *e)
     /* Hint: free the ASID */
     asid_free(e->env_id >> (1 + LOG2NENV));
     page_decref(pa2page(pa));
-    /* Hint: return the environment to the free list. */
+	int i;
+	// to delete all threads 
+	for(i=0; i<THREAD_MAX; i++){
+		struct Tcb *t = &e->env_threads[i];
+		if(t->tcb_status != ENV_FREE){
+			t->tcb_status = ENV_FREE;
+			printf("i am thread no.%d, tcbid is %x, i am killed ... \n",TCBX(t->tcb_id), t->tcb_id);
+		}
+	}
+	/* Hint: return the environment to the free list. */
     LIST_INSERT_HEAD(&env_free_list, e, env_link);
 }
 
