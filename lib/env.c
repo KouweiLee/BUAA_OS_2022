@@ -380,7 +380,7 @@ load_icode(struct Env *e, u_char *binary, u_int size)
 
     /* Step 2: Use appropriate perm to set initial stack for new Env. */
     /* Hint: Should the user-stack be writable? */
-//	r = page_insert(e->env_pgdir, p, USTACKTOP-BY2PG, PTE_R);
+	r = page_insert(e->env_pgdir, p, USTACKTOP-BY2PG, PTE_R);
 	if(r<0) return;
     /* Step 3: load the binary using elf loader. */
 	load_elf(binary, size, &entry_point, e, load_icode_mapper);	
