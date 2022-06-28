@@ -7,7 +7,7 @@ void sched_yield(void)
     static int count = 0; // remaining time slices of current env
     static int point = 0; // current tcb_sched_list index
     static struct Tcb *t = NULL;
-    
+    int cempty=0;
 	//printf("exe\n");
     if(count == 0 || t == NULL || t->tcb_status != ENV_RUNNABLE){
         if(t != NULL){//count == 0 || status is not runnable
@@ -17,8 +17,11 @@ void sched_yield(void)
             }
         }
         while(1){
-            while(LIST_EMPTY(&tcb_sched_list[point])) 
+            while(LIST_EMPTY(&tcb_sched_list[point])){ 
                 point = 1 - point;
+				cempty++;
+				if(cempty>2) panic("no threads!");
+			}
             t = LIST_FIRST(&tcb_sched_list[point]);
             if(t->tcb_status == ENV_FREE){
                 LIST_REMOVE(t, tcb_sched_link);

@@ -27,11 +27,12 @@
 
 #define SEM_FREE	0
 #define SEM_VALID	1
-#define SEM_MAXNUM 16
+#define SEM_MAXNUM THREAD_MAX 
 // Values of env_status in struct Env
 #define ENV_FREE	0
 #define ENV_RUNNABLE		1
 #define ENV_NOT_RUNNABLE	2
+
 struct Tcb {
 	// basic information
 	struct Trapframe tcb_tf;
@@ -53,7 +54,8 @@ struct Tcb {
 	int tcb_cancelstate;
 	int tcb_canceltype;
 	u_int tcb_canceled;//是否收到cancel信号
-
+	
+//	pthread_attr_t attr;
 	// keep bytes
 	//u_int tcb_nop[13];//按最终需要分配
 };
@@ -99,7 +101,7 @@ struct sem {
 	int sem_status;      //有free和valid两种
 	int sem_shared;
 	int sem_wait_count;//阻塞的进程数量
-	struct Tcb *sem_wait_list[10];
+	struct Tcb *sem_wait_list[SEM_MAXNUM];
 };
 
 LIST_HEAD(Env_list, Env);

@@ -13,7 +13,7 @@ int sem_init(sem_t *sem,int shared,unsigned int value) {
 	sem->sem_status = SEM_VALID;
 	sem->sem_wait_count = 0;
 	int i;
-	for(i = 0; i < 10; ++i) {
+	for(i = 0; i < SEM_MAXNUM; ++i) {
 		sem->sem_wait_list[i] = 0;
 	}
 	return 0;

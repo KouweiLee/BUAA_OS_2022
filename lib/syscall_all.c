@@ -493,18 +493,10 @@ int sys_thread_destroy(int sysno, u_int threadid)
     if (t->tcb_status == ENV_FREE) {
         return -E_INVAL;
     }
-	/*
-	if( == 0){
-		struct Env *e = &envs[ENVX()];
-		int i;
-		for(i=1;i<THREAD_MAX;i++){
-			sys_thread_destroy(0, e->env_threads[i].tcb_id);
-		}
-	}
-	*/
     struct Tcb *joinedtcb = t->tcb_joinedtcb;
     if(joinedtcb != 0){
-        *(joinedtcb->tcb_join_value_ptr) = t->tcb_exit_ptr;
+		if(joinedtcb->tcb_join_value_ptr != 0)
+			*(joinedtcb->tcb_join_value_ptr) = t->tcb_exit_ptr;
         sys_set_thread_status(0,joinedtcb->tcb_id,ENV_RUNNABLE);
     }
     printf("[%08x] destroying tcb %08x\n", curenv->env_id, t->tcb_id);
@@ -533,7 +525,7 @@ int sys_thread_join(int sysno, u_int threadid, void **value_ptr)
         return -E_BAD_TCB;//E_BAD_TCB 
     }
 	t->tcb_joinedtcb = curtcb; 
-    curtcb->tcb_join_value_ptr = value_ptr;
+	curtcb->tcb_join_value_ptr = value_ptr;
     sys_set_thread_status(0,curtcb->tcb_id,ENV_NOT_RUNNABLE);
     struct Trapframe *trap = (struct Trapframe *)(KERNEL_SP - sizeof(struct Trapframe));
     trap->regs[2] = 0;
@@ -554,7 +546,7 @@ int sys_sem_wait(int sysno, sem_t *sem)
 		return 0;
 	}
 	//需要阻塞
-	if (sem->sem_wait_count >= 10) {
+	if (sem->sem_wait_count >= SEM_MAXNUM) {
 		return -E_SEM_ERROR;
 	}
 	sem->sem_wait_list[sem->sem_head_index] = curtcb;

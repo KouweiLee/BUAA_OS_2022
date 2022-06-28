@@ -10,6 +10,7 @@ void mips_init() {
 	printf("env is %d\n", sizeof(struct Env));
 	printf("tcb is %d\n", sizeof(struct Tcb));
 	printf("trapframe is %d\n", sizeof(struct Trapframe));
+	printf("void * is %d\nint is %d\n", sizeof(void *), sizeof(int));
 	mips_detect_memory();
 
 	mips_vm_init();
@@ -28,7 +29,10 @@ void mips_init() {
 	//my test
 //	ENV_CREATE(user_mycreatetest);
 //	ENV_CREATE(user_myexittest);
-	ENV_CREATE(user_mycanceltest);
+//	ENV_CREATE(user_mycanceltest);
+//	ENV_CREATE(user_mydetachtest);
+
+	ENV_CREATE(user_mysemtest1);
 	trap_init();
 	kclock_init();
 	//printf("123");

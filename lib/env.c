@@ -31,7 +31,6 @@ void thread_destroy(struct Tcb *t) {
 		bcopy((void *)KERNEL_SP - sizeof(struct Trapframe),
 			(void *)TIMESTACK - sizeof(struct Trapframe),//???
 			sizeof(struct Trapframe));
-		printf("i am thread no.%d, tcbid is %x, i am killed ... \n",TCBX(t->tcb_id), t->tcb_id);
 		sched_yield();
 	}
 }
@@ -43,14 +42,17 @@ void thread_free(struct Tcb *t)
 //	printf("[%08x] free tcb %08x\n", e->env_id, t->tcb_id);
 	--e->env_thread_count;
 	t->tcb_status = ENV_FREE;
+	printf("i am thread no.%d, tcbid is %x, i am killed ... \n",TCBX(t->tcb_id), t->tcb_id);
 	//detach
+/*	
 	if(t->tcb_detach == 1){
 		u_int sp = USTACKTOP - BY2PG*4*TCBX(t->tcb_id);
 		for(i = 1; i <= 4; ++i) {
-			page_remove(e->env_pgdir, sp-i*BY2PG);
+			sys_mem_unmap(0, e->env_id, sp-i*BY2PG);
 		}
 		bzero(t,sizeof(struct Tcb));
 	}
+*/	
 	if (e->env_thread_count <= 0) {
 		env_free(e);
 	}
