@@ -7,19 +7,17 @@
 
 void mips_init() {
 	printf("init.c:\tmips_init() is called\n");
-	printf("env is %d\n", sizeof(struct Env));
+/*	printf("env is %d\n", sizeof(struct Env));
 	printf("tcb is %d\n", sizeof(struct Tcb));
 	printf("trapframe is %d\n", sizeof(struct Trapframe));
 	printf("void * is %d\nint is %d\n", sizeof(void *), sizeof(int));
+	*/
 	mips_detect_memory();
 
 	mips_vm_init();
 	page_init();
 
 	env_init();
-//	ENV_CREATE(user_tltest);
-//	ENV_CREATE(user_fktest);
-//	ENV_CREATE(user_pingpong);
 //	ENV_CREATE(user_pttest);
 //	ENV_CREATE(user_ptexittest);
 	//ENV_CREATE(user_ptcanceltest);
@@ -32,10 +30,10 @@ void mips_init() {
 //	ENV_CREATE(user_mycanceltest);
 //	ENV_CREATE(user_mydetachtest);
 
-	ENV_CREATE(user_mysemtest1);
+//	ENV_CREATE(user_mysemtest1);
+	ENV_CREATE(user_mysemtest2);
 	trap_init();
 	kclock_init();
-	//printf("123");
 
 	while(1);
 	panic("init.c:\tend of mips_init() reached!");

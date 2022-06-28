@@ -18,7 +18,7 @@ USERLIB := printf.o \
 		sem.o
 CFLAGS += -nostdlib -static
 
-all:mysemtest1.x mysemtest1.b \
+all:mysemtest2.x mysemtest2.b mysemtest1.x mysemtest1.b \
 	mydetachtest.x mydetachtest.b mycanceltest.x mycanceltest.b \
 	myexittest.x myexittest.b  mycreatetest.x mycreatetest.b \
 	semtest.x semtest.b sellertest.x sellertest.b ptjointest.x ptjointest.b  ptcanceltest.x ptcanceltest.b ptexittest.x \
