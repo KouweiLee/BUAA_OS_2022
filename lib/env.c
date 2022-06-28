@@ -38,10 +38,19 @@ void thread_destroy(struct Tcb *t) {
 
 void thread_free(struct Tcb *t)
 {
+	int i;
 	struct Env *e = ROUNDDOWN(t,BY2PG);
 //	printf("[%08x] free tcb %08x\n", e->env_id, t->tcb_id);
 	--e->env_thread_count;
 	t->tcb_status = ENV_FREE;
+	//detach
+	if(t->tcb_detach == 1){
+		u_int sp = USTACKTOP - BY2PG*4*TCBX(t->tcb_id);
+		for(i = 1; i <= 4; ++i) {
+			page_remove(e->env_pgdir, sp-i*BY2PG);
+		}
+		bzero(t,sizeof(struct Tcb));
+	}
 	if (e->env_thread_count <= 0) {
 		env_free(e);
 	}
@@ -535,7 +544,8 @@ env_free(struct Env *e)
     pa = e->env_cr3;
     e->env_pgdir = 0;
     e->env_cr3 = 0;
-    /* Hint: free the ASID */
+    e->env_thread_count = 0;
+	/* Hint: free the ASID */
     asid_free(e->env_id >> (1 + LOG2NENV));
     page_decref(pa2page(pa));
 	int i;
