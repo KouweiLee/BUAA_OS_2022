@@ -11,18 +11,18 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 		return newthread;
 	}
 	struct Tcb *t = &env->env_threads[TCBX(newthread)];
-	t->tcb_tf.regs[29] = USTACKTOP - 4*BY2PG*newthread;//1个栈16K
+	t->tcb_tf.regs[29] = USTACKTOP - TCB_STACK(TCBX(newthread));
 	t->tcb_tf.pc = start_rountine;
-	t->tcb_tf.regs[29] -= 4;//参数需要在栈中占位
-	t->tcb_tf.regs[4] = arg;
-	t->tcb_tf.regs[31] = son_exit;//返回son_exit函数
+	t->tcb_tf.regs[29] -= 4;//according to MIPS, parameter should be placed in stack
+	t->tcb_tf.regs[4] = arg;//a0 stores arg
+	t->tcb_tf.regs[31] = son_exit;//when function finished, return to son_exit
 	syscall_set_thread_status(t->tcb_id,ENV_RUNNABLE);
 	*thread = t->tcb_id;
 	return 0;
 }
 
 void pthread_exit(void *value_ptr) {
-	u_int threadid = syscall_getthreadid();//获取当前线程的id
+	u_int threadid = pthread_self();
 	struct Tcb *t = &env->env_threads[TCBX(threadid)];
 	t->tcb_exit_ptr = value_ptr;
 	syscall_thread_destroy(threadid);
@@ -36,7 +36,7 @@ int pthread_cancel(pthread_t thread) {
 	if (t->tcb_cancelstate == PTHREAD_CANCEL_DISABLE) {//禁止取消
 		return -E_THREAD_CANNOTCANCEL;
 	}
-	t->tcb_exit_ptr = 0;
+	t->tcb_exit_ptr = PTHREAD_CANCELED;
 	if (t->tcb_canceltype == PTHREAD_CANCEL_ASYNCHRONOUS) {//立即取消
 		syscall_thread_destroy(thread);
 	} else {
@@ -106,8 +106,9 @@ int pthread_detach(pthread_t thread) {
 		return -E_BAD_TCB;
 	}
 	if (t->tcb_status == ENV_FREE) {
-		u_int sp = USTACKTOP - BY2PG*4*(TCBX(thread));
-		for(i = 1; i <= 4; ++i) {
+		u_int sp = USTACKTOP - TCB_STACK(TCBX(thread));
+		t->tcb_exit_ptr = 0;
+		for(i = 1; i <= TCB_SNUM; ++i) {
 			r = syscall_mem_unmap(0,sp-i*BY2PG);
 			if (r < 0)
 				return r;

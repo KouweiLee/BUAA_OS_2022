@@ -24,7 +24,8 @@
 #define TCB2ENV(t) ROUNDDOWN(t, BY2PG)
 #define TCBX(t) (t & 0xf)
 #define TCBE(t) (t >> 4)
-
+#define TCB_STACK(t) (TCB_SNUM*BY2PG*t)
+#define TCB_SNUM 1024
 #define SEM_FREE	0
 #define SEM_VALID	1
 #define SEM_MAXNUM THREAD_MAX 
@@ -42,22 +43,17 @@ struct Tcb {
 	LIST_ENTRY(Tcb) tcb_sched_link;
     
 	// pthread_join information
-	struct Tcb* tcb_joinedtcb;
-	void **tcb_join_value_ptr;//join的进程保存
-	u_int tcb_detach;
+	struct Tcb* tcb_joinedtcb;//save the tcb joining to it
+	void **tcb_join_value_ptr;//save the other tcb's exit value
+	u_int tcb_detach;     //whether tcb was detached  
 
 	// pthread_exit information
-	void *tcb_exit_ptr;//保存退出的值，如果是正常退出，则ptr为0
-	//int tcb_exit_value;为了保证结果正确性，注释掉这条语句
+	void *tcb_exit_ptr;   //save the exit value
 
 	// pthread_cancel information
-	int tcb_cancelstate;
-	int tcb_canceltype;
-	u_int tcb_canceled;//是否收到cancel信号
-	
-//	pthread_attr_t attr;
-	// keep bytes
-	//u_int tcb_nop[13];//按最终需要分配
+	int tcb_cancelstate; //cancel state
+	int tcb_canceltype;  //cancel type
+	u_int tcb_canceled;  //whether the cancel signal was received
 };
 
 struct Env {
@@ -94,13 +90,13 @@ struct Env {
 
 struct sem {
 	u_int sem_envid;
-	u_int sem_head_index;//循环队列头部指针，新被阻塞的进程从头部入队
-	u_int sem_tail_index;//尾部指针，被释放的进程从尾部出队
+	u_int sem_head_index;//specifies the newly blocked thread position
+	u_int sem_tail_index;//specifies the exit position
 	char sem_name[16];
 	int sem_value;
-	int sem_status;      //有free和valid两种
+	int sem_status;      
 	int sem_shared;
-	int sem_wait_count;//阻塞的进程数量
+	int sem_wait_count;
 	struct Tcb *sem_wait_list[SEM_MAXNUM];
 };
 

@@ -17,16 +17,16 @@ void mips_init() {
 	page_init();
 
 	env_init();
-//	ENV_CREATE(user_pttest);
-//	ENV_CREATE(user_ptexittest);
-	//ENV_CREATE(user_ptcanceltest);
-//	ENV_CREATE(user_ptjointest);
-//	ENV_CREATE(user_semtest);
-//	ENV_CREATE(user_sellertest);
+//  ENV_CREATE(user_tltest);                                                                                                  
+//  ENV_CREATE(user_fktest);
+ // ENV_CREATE(user_pingpong);
+
 	//my test
-//	ENV_CREATE(user_mycreatetest);
-//	ENV_CREATE(user_myexittest);
-//	ENV_CREATE(user_mycanceltest);
+/*	ENV_CREATE(user_mycreatetest);
+	ENV_CREATE(user_myexittest);
+	ENV_CREATE(user_mycanceltest);
+	ENV_CREATE(user_myjointest);
+*/
 //	ENV_CREATE(user_mydetachtest);
 
 //	ENV_CREATE(user_mysemtest1);
@@ -71,3 +71,10 @@ void bzero(void *b, size_t len) {
 		*(char *)b++ = 0;
 	}
 }
+//	ENV_CREATE(user_pttest);
+//	ENV_CREATE(user_ptexittest);
+	//ENV_CREATE(user_ptcanceltest);
+//	ENV_CREATE(user_ptjointest);
+//	ENV_CREATE(user_semtest);
+//	ENV_CREATE(user_sellertest);
+

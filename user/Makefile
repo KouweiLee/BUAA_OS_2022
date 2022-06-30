@@ -18,13 +18,13 @@ USERLIB := printf.o \
 		sem.o
 CFLAGS += -nostdlib -static
 
-all:mysemtest2.x mysemtest2.b mysemtest1.x mysemtest1.b \
+all:myjointest.x myjointest.b mysemtest2.x mysemtest2.b mysemtest1.x mysemtest1.b \
 	mydetachtest.x mydetachtest.b mycanceltest.x mycanceltest.b \
 	myexittest.x myexittest.b  mycreatetest.x mycreatetest.b \
 	semtest.x semtest.b sellertest.x sellertest.b ptjointest.x ptjointest.b  ptcanceltest.x ptcanceltest.b ptexittest.x \
 	ptexittest.b ptcreatetest.x ptcreatetest.b tltest.x tltest.b \
 	fktest.x fktest.b pingpong.x pingpong.b idle.x \
-	$(USERLIB) entry.o syscall_wrap.o
+	$(USERLIB) entry.o syscall_wrap.o son_exit.o
 
 %.x: %.b.c
 	echo cc1 $<
@@ -37,7 +37,7 @@ all:mysemtest2.x mysemtest2.b mysemtest1.x mysemtest1.b \
 	./bintoc $* $< > $@~ && mv -f $@~ $@
 #	grep \. $@
 
-%.b: entry.o syscall_wrap.o %.o $(USERLIB)
+%.b: entry.o syscall_wrap.o son_exit.o %.o $(USERLIB)
 	echo ld $@
 	$(LD) -o $@ $(LDFLAGS) -G 0 -static -n -nostdlib -T ./user.lds $^
 

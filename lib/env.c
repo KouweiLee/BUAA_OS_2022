@@ -39,20 +39,18 @@ void thread_free(struct Tcb *t)
 {
 	int i;
 	struct Env *e = ROUNDDOWN(t,BY2PG);
-//	printf("[%08x] free tcb %08x\n", e->env_id, t->tcb_id);
 	--e->env_thread_count;
 	t->tcb_status = ENV_FREE;
 	printf("i am thread no.%d, tcbid is %x, i am killed ... \n",TCBX(t->tcb_id), t->tcb_id);
-	//detach
-/*	
+
 	if(t->tcb_detach == 1){
-		u_int sp = USTACKTOP - BY2PG*4*TCBX(t->tcb_id);
-		for(i = 1; i <= 4; ++i) {
+		u_int sp = USTACKTOP - TCB_STACK(TCBX(t->tcb_id));
+		for(i = 1; i <= TCB_SNUM; ++i) {
 			sys_mem_unmap(0, e->env_id, sp-i*BY2PG);
 		}
-		bzero(t,sizeof(struct Tcb));
+		t->tcb_exit_ptr = 0;
 	}
-*/	
+	
 	if (e->env_thread_count <= 0) {
 		env_free(e);
 	}
@@ -257,13 +255,13 @@ env_setup_vm(struct Env *e)
     e->env_pgdir[PDX(UVPT)]  = e->env_cr3 | PTE_V;
     return 0;
 }
-
+//pri is not initialized here
 int thread_alloc(struct Env *e, struct Tcb **new) {
     if (e->env_thread_count >= THREAD_MAX)
         return -E_THREAD_MAX;
     u_int i;
     for(i = 0;i < THREAD_MAX; i++){
-        if(e->env_threads[i].tcb_status == ENV_FREE)
+        if(e->env_threads[i].tcb_status == ENV_FREE && e->env_threads[i].tcb_exit_ptr == 0) //make sure thread is available
             break;
     }
     if(i == THREAD_MAX)
@@ -272,18 +270,24 @@ int thread_alloc(struct Env *e, struct Tcb **new) {
     struct Tcb *t = &e->env_threads[i];
     t->tcb_id = mktcbid(t, i);
     printf("thread id is %x\n", t->tcb_id);
-    t->tcb_status = ENV_RUNNABLE;
-
-	t->tcb_tf.cp0_status = 0x1000100c;
-	t->tcb_tf.regs[29] = USTACKTOP - 4*BY2PG*(TCBX(t->tcb_id));//栈大小为16KB
-	t->tcb_cancelstate = PTHREAD_CANCEL_ENABLE;
-	t->tcb_canceltype = PTHREAD_CANCEL_DEFERRED;
-	t->tcb_canceled = 0;
+	t->tcb_status = ENV_RUNNABLE;
+    //initialize join information
+    t->tcb_joinedtcb = 0;
+    t->tcb_join_value_ptr = 0;
+    t->tcb_detach = 0;
+    
     t->tcb_exit_ptr = (void *)0;
-	
-	t->tcb_detach = 0;
-	t->tcb_joinedtcb = 0;
-	*new = t;
+
+    //initialize cancel information
+    t->tcb_cancelstate = PTHREAD_CANCEL_ENABLE;
+    t->tcb_canceltype = PTHREAD_CANCEL_DEFERRED;
+    t->tcb_canceled = 0;
+
+    //initialize tcb_tf 
+    t->tcb_tf.cp0_status = 0x1000100c;
+    t->tcb_tf.regs[29] = USTACKTOP - TCB_STACK(TCBX(t->tcb_id));
+    
+    *new = t;
 	return 0;
 }
 
@@ -329,9 +333,6 @@ int env_alloc(struct Env **new, u_int parent_id)
 	e->env_thread_count = 0;
     if((r = thread_alloc(e, &t)) < 0)
         return r;
-    /* Step 4: Focus on initializing the sp register and cp0_status of env_tf field, located at this new Env. */
-    t->tcb_tf.cp0_status = 0x1000100c;
-    //t->tcb_tf.regs[29] = USTACKTOP;
 
     /* Step 5: Remove the new Env from env_free_list. */
     LIST_REMOVE(e, env_link);
@@ -556,6 +557,7 @@ env_free(struct Env *e)
 		struct Tcb *t = &e->env_threads[i];
 		if(t->tcb_status != ENV_FREE){
 			t->tcb_status = ENV_FREE;
+			t->tcb_exit_ptr = 0;
 			printf("i am thread no.%d, tcbid is %x, i am killed ... \n",TCBX(t->tcb_id), t->tcb_id);
 		}
 	}

@@ -7,7 +7,7 @@ void *buy(void *args) {
 	int exitflag = 0;
 	while (1) {
 		sem_wait(mutex);
-		//writef("son%d got mutex\n",son);
+		writef("son%d got mutex\n",son);
 		if (*b > 0) {
 			c = *b;
 			*b = *b - 1;
@@ -18,7 +18,7 @@ void *buy(void *args) {
 		} else if (*b < 0) {
 			user_panic("panic at son%d, tickets are %d\n",son,*b);
 		}
-		//writef("son%d free mutex\n",son);
+		writef("son%d free mutex\n",son);
 		sem_post(mutex);
 		if (exitflag) {
 			break;
@@ -48,5 +48,6 @@ void umain() {
 	pthread_create(&thread2,NULL,buy,(void *)arg2);
 	arg3[2] = 3;
 	pthread_create(&thread3,NULL,buy,(void *)arg3);
+	pthread_exit(NULL);
 }
 
