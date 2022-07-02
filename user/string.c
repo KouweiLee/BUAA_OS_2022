@@ -1,6 +1,15 @@
 // String routines.  Not hardware optimized, but not shabby.
 
 #include "lib.h"
+char *strcat(char *dst, const char *src)
+{
+    char *ret = dst;
+    while (*ret)
+        ret++;
+    while ((*ret++ = *src++) != 0)
+        ;
+    return dst;
+}
 
 int
 strlen(const char *s)

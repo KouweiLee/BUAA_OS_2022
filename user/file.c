@@ -70,6 +70,7 @@ open(const char *path, int mode)
 	/*if(mode & O_APPND){
 		seek(fdnum, size);
 	}*/
+	if(mode & O_TRUNC) ftruncate(fdnum, 0);
 	return fdnum;
 }
 

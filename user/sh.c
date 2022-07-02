@@ -137,7 +137,7 @@ again:
 				writef("specified path should be file\n");
 				exit();
 			}
-			fdnum = open(t, O_WRONLY|O_CREAT);
+			fdnum = open(t, O_WRONLY|O_CREAT|O_TRUNC);
 			if(fdnum < 0){
 				user_panic("> open file failed!");
 			}
