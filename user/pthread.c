@@ -13,7 +13,7 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 	struct Tcb *t = &env->env_threads[TCBX(newthread)];
 	t->tcb_tf.regs[29] = USTACKTOP - TCB_STACK(TCBX(newthread));
 	t->tcb_tf.pc = start_rountine;
-	t->tcb_tf.regs[29] -= 4;//according to MIPS, parameter should be placed in stack
+//	t->tcb_tf.regs[29] -= 4;//according to MIPS, parameter should be placed in stack
 	t->tcb_tf.regs[4] = arg;//a0 stores arg
 	t->tcb_tf.regs[31] = son_exit;//when function finished, return to son_exit
 	syscall_set_thread_status(t->tcb_id,ENV_RUNNABLE);

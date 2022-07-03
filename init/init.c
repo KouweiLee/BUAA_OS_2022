@@ -22,15 +22,15 @@ void mips_init() {
 //    ENV_CREATE(user_pingpong);
 
 	//my test
-//	ENV_CREATE(user_mycreatetest);
-//	ENV_CREATE(user_myexittest);
-//	ENV_CREATE(user_mycanceltest);
+	ENV_CREATE(user_mycreatetest);
+	ENV_CREATE(user_myexittest);
+	ENV_CREATE(user_mycanceltest);
 	ENV_CREATE(user_myjointest);
 
-//	ENV_CREATE(user_mydetachtest);
+	ENV_CREATE(user_mydetachtest);
 
-//	ENV_CREATE(user_mysemtest1);
-//	ENV_CREATE(user_mysemtest2);
+	ENV_CREATE(user_mysemtest1);
+	ENV_CREATE(user_mysemtest2);
 
 	trap_init();
 	kclock_init();
