@@ -94,8 +94,30 @@ void pthread_testcancel() {
 }
 
 int pthread_join(pthread_t thread, void **value_ptr) {
-	int r = syscall_thread_join(thread,value_ptr);
-	return r;
+	struct Tcb *t;
+    int r; 
+    t = &env->env_threads[TCBX(thread)];
+    if(t->tcb_id != thread){
+        return -E_BAD_TCB;
+    }   
+    if (t->tcb_detach || t->tcb_joinedtcb != 0) {
+        return -E_INVAL; 
+    }   
+    if (t->tcb_status == ENV_FREE) {
+        if (value_ptr != 0 && t->tcb_exit_ptr != 0) {//tcb_exit_ptr为0表示
+            *value_ptr = t->tcb_exit_ptr;
+            t->tcb_exit_ptr = 0;
+        }   
+        return 0;
+    }   
+    if(tcb->tcb_joinedtcb == t){//造成死锁
+        return -E_BAD_TCB;//E_BAD_TCB 
+    }   
+    t->tcb_joinedtcb = tcb;
+    tcb->tcb_join_value_ptr = value_ptr;
+    syscall_set_thread_status(0,tcb->tcb_id,ENV_NOT_RUNNABLE);
+    syscall_yield();
+    return 0;    
 }
 
 int pthread_detach(pthread_t thread) {
