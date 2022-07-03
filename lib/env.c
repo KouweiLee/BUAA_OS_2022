@@ -192,7 +192,9 @@ env_init(void)
     int i;
     /* Step 1: Initialize env_free_list. */
 	LIST_INIT(&env_free_list);
-    /* Step 2: Traverse the elements of 'envs' array,
+    LIST_INIT(&tcb_sched_list[0]);
+    LIST_INIT(&tcb_sched_list[1]);
+	/* Step 2: Traverse the elements of 'envs' array,
      *   set their status as free and insert them into the env_free_list.
      * Choose the correct loop order to finish the insertion.
      * Make sure, after the insertion, the order of envs in the list
